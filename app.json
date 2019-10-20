@@ -1,0 +1,6 @@
+{
+  "name": "uber-by-text",
+  "description": "Service for requesting Uber rides via text message",
+  "repository": "https://github.com/rmferrer/uber-by-text",
+  "keywords": ["node", "express", "heroku", "xfvb", "puppeteer"]
+}
