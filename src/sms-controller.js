@@ -225,10 +225,11 @@ const inputRouter = async (input, sessionKey, redis) => {
     return ["Radio check! One two. Check check. One two. Check!"];
   }
 
-  // TODO: check session cookies instead
   const sessionStatus = await store.get_session_status(sessionKey, redis);
-  if (sessionStatus === models.statusCodes.loggedOut) {
-    return await loginHandler(sessionKey, redis);
+  const sessionCookies = await store.get_session_cookies(sessionKey, redis);
+
+  if(!sessionCookies && sessionStatus !== models.statusCodes.loggedOut) {
+    return ["You are not logged into Uber. Please login first."]
   }
 
   /* Handle logged in special commands first */
@@ -246,9 +247,10 @@ const inputRouter = async (input, sessionKey, redis) => {
     return await nukeHandler(sessionKey, redis);
   }
 
-  const sessionCookies = await store.get_session_cookies(sessionKey, redis);
 
   switch(sessionStatus) {
+    case models.statusCodes.loggedOut: 
+      return await loginHandler(sessionKey, redis);
     case models.statusCodes.totp: 
       return await totpHandler(input, sessionKey, redis);
     case models.statusCodes.mainMenu:
@@ -274,7 +276,7 @@ const inputRouter = async (input, sessionKey, redis) => {
     case models.statusCodes.rideInProgress:
       return await rideInProgressOptionHandler(input, sessionKey, redis, sessionCookies);
     default:
-      return ""; // TODO
+      return ["don't have a handler for status :" + sessionStatus]; 
   }
 }
 
