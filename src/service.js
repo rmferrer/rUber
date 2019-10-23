@@ -15,4 +15,9 @@ app.post('/sms', async (req, res) => {
   res.end(responseText);
 });
 
+app.get('/ping', async (req, res) => {
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  res.end("Pong! All is working!");
+});
+
 exports.service = app;

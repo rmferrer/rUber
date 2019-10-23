@@ -220,12 +220,18 @@ const saveAddressOptionHandler = async (input, sessionKey, redis) => {
 }
 
 const inputRouter = async (input, sessionKey, redis) => {
+  /* Handle logged out special commands first */
+  if (input === "radio-check") {
+    return ["Radio check! One two. Check check. One two. Check!"];
+  }
+
+  // TODO: check session cookies instead
   const sessionStatus = await store.get_session_status(sessionKey, redis);
   if (sessionStatus === models.statusCodes.loggedOut) {
     return await loginHandler(sessionKey, redis);
   }
 
-  /* Handle special commands first */
+  /* Handle logged in special commands first */
   if (input === "menu") {
     return await mainMenuSpecialCommandHandler(sessionKey, redis);
   }

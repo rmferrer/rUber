@@ -1,3 +1,5 @@
 build:
   docker:
     web: Dockerfile
+run:
+  web: /bin/sh -c bash\ /app/.profile.d/heroku-exec.sh\ \&\ bash\ scripts/display.sh\ \&\ npm\ run\ start
