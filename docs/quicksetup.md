@@ -58,9 +58,9 @@ In the sandbox configuration look for a field called "When a message comes in" a
     
     and leave it as an HTTP POST. Save settings.
     
-3. Now send "radio-check" to your Uber via Whatsapp number. If you get a "Radio check" back you are now communicating with your Heroku server via Whatsapp, well done. If not, happy debugging!
+3. Now send "radio-check" to your Uber-via-Whatsapp number. If you get a "Radio check" back you are now communicating with your Heroku server via Whatsapp, well done. If not, happy debugging!
 
-### 3/3 Set up your Uber session in your server. Tbe hackiest step yet...
+### 3/3 Set up your Uber session in your server. Tbe last and hackiest step yet...
 
 It used to be that you would save your uber credentials (email, passwd) on your Heroku 
 app's config vars and the server would know to log you in on first use (it would even ask
