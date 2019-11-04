@@ -34,20 +34,26 @@ const login = async (page, credentials) => {
 	try {
 		await page.focus("input#password.text-input");
 		await page.keyboard.type(credentials.password);
-		await click(page, "button.btn.btn--arrow.btn--full");
+		page.click("button.btn.btn--arrow.btn--full");
+		await page.waitFor(1000);
 	} catch (error) {
 		console.error(error);
 		return false;
 	}
-	
-	console.log("[LOGIN] Entering TOTP.");
+
 	try {
-		await page.focus("input#totp.text-input");
-		await page.keyboard.type(credentials.totp);
-		await click(page, "button.btn.btn--arrow.btn--full");
+		await page.$("input#totp.text-input");
+		console.log("[LOGIN] Entering TOTP.");
+		try {
+			await page.focus("input#totp.text-input");
+			await page.keyboard.type(credentials.totp);
+			await click(page, "button.btn.btn--arrow.btn--full");
+		} catch (error) {
+			console.error(error);
+			return false;
+		}		
 	} catch (error) {
-		console.error(error);
-		return false;
+		await page.waitForNavigation({ waitUntil: 'networkidle0' });
 	}
 
 	return await page.url() == "https://m.uber.com/looking";
@@ -184,12 +190,12 @@ const execute_in_page_past_auth = async (fnc, cookies) => {
 	return result;
 }
 
-const login_with_totp = async (totp) => {
+const login_with_totp = async (email, password, totp) => {
 	return await execute_in_page(async (page) => {
 		const credentials = {
-			emailAddress: process.env.UBER_EMAIL,
+			emailAddress: email,
 			totp: totp,
-			password: process.env.UBER_PASSWORD
+			password: password
 		};
 		return await auth(page, credentials);
 	}, '[]');

@@ -1,4 +1,5 @@
-const expect = require("chai").expect
+const assert = require("chai").assert;
+const expect = require("chai").expect;
 const fs = require("fs");
 const uber_controller = require("../src/uber-controller");
 
@@ -7,9 +8,14 @@ const cookies = fs.readFileSync('cookies.txt', 'utf8');
     
 // describe("login_with_totp", () => {
 //   it("logs in successfully", async function () {
-//     this.timeout(TIMEOUT);  
-//     const result = await uber_controller.login_with_totp("218277", cookies);
-//     expect(result).to.eq(null);
+//     this.timeout(TIMEOUT); 
+//     const result = await uber_controller.login_with_totp(process.env.UBER_EMAIL, process.env.UBER_PASSWORD, "791870");
+//     expect(result).not.to.eq(null);
+//     try {
+//         JSON.parse(result);
+//     } catch (e) {
+//         assert.fail("login_with_totp returns invalid json: " + result);
+//     }
 //   });
 // });
 
@@ -22,7 +28,7 @@ describe("lookup_address", () => {
   it("returns a correct result for an existing address", async function () {
     this.timeout(TIMEOUT);
     const result = await uber_controller.lookup_address("1 facEbOok WAy", cookies);
-    expect(result).to.have.members([ '1. 1 Facebook Way\nMenlo Park, CA' ]);
+    expect(result).to.have.members([ '1. 1 Facebook Way\nMenlo Park, CA, USA' ]);
   });
   it("returns numbered results", async function () {
   	this.timeout(TIMEOUT);	

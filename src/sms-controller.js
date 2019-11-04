@@ -5,11 +5,11 @@ const models = require('./models');
 
 const loginHandler = async (sessionKey, redis) => {
   await store.set_session_status(sessionKey, models.statusCodes.totp, redis);
-  return ["Enter TOTP for auth:"];
+  return ["Enter TOTP for auth (empty if you don't have 2FA):"];
 }
 
-const totpHandler = async (input, sessionKey, redis) => {
-  const cookies = await uberController.login_with_totp(input);
+const totpHandler = async (email, password, totp, sessionKey, redis) => {
+  const cookies = await uberController.login_with_totp(email, password, input);
   
   if (cookies) {
     await store.set_session_cookies(sessionKey, cookies, redis);
@@ -252,7 +252,9 @@ const inputRouter = async (input, sessionKey, redis) => {
     case models.statusCodes.loggedOut: 
       return await loginHandler(sessionKey, redis);
     case models.statusCodes.totp: 
-      return await totpHandler(input, sessionKey, redis);
+      const email = process.env.UBER_EMAIL;
+      const password = process.env.UBER_PASSWORD;
+      return await totpHandler(email, password, input, sessionKey, redis);
     case models.statusCodes.mainMenu:
       return await mainMenuHandler(input, sessionKey, redis);
     case models.statusCodes.settings:
