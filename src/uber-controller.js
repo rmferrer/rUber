@@ -148,6 +148,24 @@ const search_rates = async (page) => {
 	});
 }
 
+const search_payment_options = async (page) => {
+	try {
+		await page.waitForSelector("div[data-test=request-trip-button-container] > div", {timeout: 10000});
+	} catch (e) {
+		console.log("Timed out waiting for payment options. Probably something wrong with the route");
+		return [];
+	}
+	await click(page, "div[data-test=request-trip-button-container] > div");
+	await page.click("div[data-test=list-container] > span > div + div");
+	await page.waitFor(500);
+	
+	return await page.evaluate(() => {
+		const results = Array.from(document.querySelectorAll("span > div[data-test=list-container] > div"));
+		results.splice(-1, 1);
+		return results.map((item,idx) => (idx+1) + ". " + item.innerText)
+	});
+}
+
 const execute_in_page = async (fnc, cookies) => {
 	console.log('launching browser');
 	const browser = await puppeteer.launch(launchArgs);
@@ -240,9 +258,18 @@ const cancel_trip = async (cookies) => {
 	}, cookies);
 }
 
+const lookup_payment_options = async (src, dest, cookies) => {
+	return await execute_in_page_past_auth(async (page) => {
+		await enter_and_click_address(src, page);
+		await enter_and_click_address(dest, page);
+		return await search_payment_options(page);
+	}, cookies);
+}
+
 /* External API */
 exports.login_with_totp = login_with_totp;
 exports.lookup_address = lookup_address;
 exports.lookup_rates = lookup_rates;
+exports.lookup_payment_options = lookup_payment_options;
 exports.book_trip = book_trip;
 exports.cancel_trip = cancel_trip;
