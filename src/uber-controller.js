@@ -13,9 +13,18 @@ const child_choice_selector = (parentSelector, choiceIdx) => {
 	return parentSelector +":nth-child(" + choiceIdx + ")";
 }
 
+const click_and_wait_idle = (page, selector) => Promise.all([
+	  page.evaluate((selector) => document.querySelector(selector).click(), selector),
+	  page.waitForNavigation({ waitUntil: 'networkidle0' }),
+]);
+
 const click = (page, selector) => Promise.all([
-      page.click(selector),
-      page.waitForNavigation({ waitUntil: 'networkidle0' }),
+	  page.evaluate((selector) => document.querySelector(selector).click(), selector),
+]);
+
+const click_and_wait_ms = (page, selector, ms) => Promise.all([
+	  page.evaluate((selector) => document.querySelector(selector).click(), selector),
+      page.waitFor(ms),
 ]);
 
 const login = async (page, credentials) => {
@@ -23,7 +32,7 @@ const login = async (page, credentials) => {
 	try {
 		await page.focus("input#useridInput.text-input");
 		await page.keyboard.type(credentials.emailAddress);
-		await click(page, "button.btn.btn--arrow.btn--full");
+		await click_and_wait_idle(page, "button.btn.btn--arrow.btn--full");
 	} catch (error) {
 		console.error(error);
 		return false;
@@ -34,8 +43,7 @@ const login = async (page, credentials) => {
 	try {
 		await page.focus("input#password.text-input");
 		await page.keyboard.type(credentials.password);
-		page.click("button.btn.btn--arrow.btn--full");
-		await page.waitFor(1000);
+		await click_and_wait_ms(page, "button.btn.btn--arrow.btn--full", 1000);
 	} catch (error) {
 		console.error(error);
 		return false;
@@ -47,7 +55,7 @@ const login = async (page, credentials) => {
 		try {
 			await page.focus("input#totp.text-input");
 			await page.keyboard.type(credentials.totp);
-			await click(page, "button.btn.btn--arrow.btn--full");
+			await click_and_wait_idle(page, "button.btn.btn--arrow.btn--full");
 		} catch (error) {
 			console.error(error);
 			return false;
@@ -83,7 +91,7 @@ const enter_address = async (address, page) => {
 
 const click_address_option = async (option, page) => {
 	const choiceSelector = child_choice_selector("div[data-test=list-container] > div", option);
-	await click(page, choiceSelector);
+	await click_and_wait_idle(page, choiceSelector);
 }
 
 const enter_and_click_address = async (address, page) => {
@@ -105,31 +113,44 @@ const search_address = async (address, page) => {
 	return results;
 }
 
-const order_trip = async (choice, page) => {
-	await page.waitForSelector("div[data-test=tiers-container] > div");	
-	const choiceSelector = child_choice_selector("div[data-test=tiers-container] > div", choice);
-	await page.click(choiceSelector);
-	await page.waitFor(2000);
+const order_trip = async (travelChoice, paymentChoice, page) => {
+	// select ride option
+	await page.waitForSelector("div[data-test=tiers-container] > div[data-test=vehicle-view-container]");	
+	const travelChoiceSelector = child_choice_selector("div[data-test=tiers-container] > div[data-test=vehicle-view-container]", travelChoice) + " > div";
+	await click_and_wait_ms(page, travelChoiceSelector, 1000);
 
-	await page.waitForSelector("div[data-test=request-trip-button-container] > button");
-	await page.click("div[data-test=request-trip-button-container] > button");
-	await page.waitFor(2000);
+	// select payment method
+	await page.waitForSelector("div[data-test=request-trip-button-container] > div", {timeout: 10000});
+	await click_and_wait_idle(page, "div[data-test=request-trip-button-container] > div");
+	await click_and_wait_ms(page, "div[data-test=list-container] > span > div + div", 500);
+	const paymentChoiceSelector = child_choice_selector("span > div[data-test=list-container] > div", paymentChoice);
+	await click_and_wait_ms(page, paymentChoiceSelector, 1000);
 	
-	// handle surge pricing
-	const isSurge = await page.evaluate(() => !!document.querySelector("div[data-test=question-description]") && document.querySelector("div[data-test=question-description]").previousSibling.innerText.indexOf("Fares are slightly higher due to increased demand.") > -1);
-	if (isSurge) {
-		await page.click("div[data-test=question-description] + div > div + div > button");
+	// submit order
+	await page.waitForSelector("div[data-test=request-trip-button-container] > button");
+	await click_and_wait_ms(page, "div[data-test=request-trip-button-container] > button", 1000);
+	
+	// handle uber pool selection
+	console.log("checking for pool");
+	const isPool = await page.evaluate(() => !!document.querySelector("div[data-test=background]") && document.querySelector("div[data-test=background] + div + div > div > div > div").innerText.indexOf("How many seats do you need?") > -1);
+	console.log("isPool = " + isPool);
+	if (isPool) {
+		console.log("uber pool selection detected. asking for only 1 seat...")
+		await click(page, "div[data-test=background] + div + div > div > div:nth-child(2)");			
 	}
 
-	// handle uber pool selection
-	const isPool = await page.evaluate(() => !!document.querySelector("div[data-test=background]") && document.querySelector("div[data-test=background] + div + div > div > div > div").innerText.indexOf("How many seats do you need?") > -1);
-	if (isPool) {
-		await page.click("div[data-test=background] + div + div > div > div:nth-child(2)");			
+	// handle surge pricing
+	console.log("checking for surge");
+	const isSurge = await page.evaluate(() => !!document.querySelector("div[data-test=question-description]") && document.querySelector("div[data-test=question-description]").previousSibling.innerText.indexOf("Fares are slightly higher due to increased demand.") > -1);
+	console.log("isSurge = " + isSurge);
+	if (isSurge) {
+		console.log("surge pricing detected. agreeing to higher fares.");
+		await click(page, "div[data-test=question-description] + div > div + div > button");
 	}
 
 	await page.waitForFunction(() => !!document.querySelector("div[data-test=top-section-container]") && document.querySelector("div[data-test=top-section-container]").innerText.indexOf("Your driver") > -1);
 	const ride_details = await page.evaluate(() => document.querySelector("div[data-test=bottom-section-container] > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1)").innerText);
-	await page.click("div[data-test=bottom-section-container] > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1)");
+	await click(page, "div[data-test=bottom-section-container] > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1)");
 	const phone_details = await page.evaluate(() => document.querySelector("div[data-test=x-mark] + div").firstChild.childNodes[1].innerText);
 	const phone_number = "+" + phone_details.split("+")[1];
 	return [ride_details, phone_number];
@@ -155,9 +176,8 @@ const search_payment_options = async (page) => {
 		console.log("Timed out waiting for payment options. Probably something wrong with the route");
 		return [];
 	}
-	await click(page, "div[data-test=request-trip-button-container] > div");
-	await page.click("div[data-test=list-container] > span > div + div");
-	await page.waitFor(500);
+	await click_and_wait_idle(page, "div[data-test=request-trip-button-container] > div");
+	await click_and_wait_ms(page, "div[data-test=list-container] > span > div + div", 500);
 	
 	return await page.evaluate(() => {
 		const results = Array.from(document.querySelectorAll("span > div[data-test=list-container] > div"));
@@ -233,11 +253,11 @@ const lookup_rates = async (src, dest, cookies) => {
 	}, cookies);
 }
 
-const book_trip = async (src, dest, travel_option, cookies) => {
+const book_trip = async (src, dest, travel_option, payment_option, cookies) => {
 	return await execute_in_page_past_auth(async (page) => {
 		await enter_and_click_address(src, page);
 		await enter_and_click_address(dest, page);
-		return await order_trip(travel_option, page);
+		return await order_trip(travel_option, payment_option, page);
 	}, cookies);
 }
 
@@ -245,11 +265,9 @@ const cancel_trip = async (cookies) => {
 	return await execute_in_page_past_auth(async (page) => {
 		try {
 			await page.waitForSelector("div[data-test=list-container] + div > div > button");
-			await page.click("div[data-test=list-container] + div > div > button");
-			await page.waitFor(1000);
+			await click_and_wait_ms(page, "div[data-test=list-container] + div > div > button", 1000);
 			await page.waitForSelector("div[data-test=question-description] + div > div + div > button");
-			await page.click("div[data-test=question-description] + div > div + div > button");
-			await page.waitFor(1000);
+			await click_and_wait_ms(page, "div[data-test=question-description] + div > div + div > button", 1000);
 		} catch (error) {
 			console.log("error cancelling trip: " + error);
 			return false;	

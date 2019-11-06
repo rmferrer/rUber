@@ -6,19 +6,6 @@ const uber_controller = require("../src/uber-controller");
 const TIMEOUT = 60000;
 const cookies = fs.readFileSync('cookies.txt', 'utf8');
     
-// describe("login_with_totp", () => {
-//   it("logs in successfully", async function () {
-//     this.timeout(TIMEOUT); 
-//     const result = await uber_controller.login_with_totp(process.env.UBER_EMAIL, process.env.UBER_PASSWORD, "791870");
-//     expect(result).not.to.eq(null);
-//     try {
-//         JSON.parse(result);
-//     } catch (e) {
-//         assert.fail("login_with_totp returns invalid json: " + result);
-//     }
-//   });
-// });
-
 describe("lookup_address", () => {
   it("returns an error for wrong cookies", async function () {
     this.timeout(TIMEOUT);
@@ -94,14 +81,37 @@ describe("lookup_payment_options", () => {
   });
 });
 
+// describe("login_with_totp", () => {
+//   it("logs in successfully", async function () {
+//     this.timeout(TIMEOUT); 
+//     const result = await uber_controller.login_with_totp(process.env.UBER_EMAIL, process.env.UBER_PASSWORD, "791870");
+//     expect(result).not.to.eq(null);
+//     try {
+//         JSON.parse(result);
+//     } catch (e) {
+//         assert.fail("login_with_totp returns invalid json: " + result);
+//     }
+//   });
+// });
+
 // describe("book_trip", () => {
-//   it("returns a correct result for a possible route", async function () {
+//   it("books a trip correctly (THIS BOOKS A REAL TRIP / DO NOT INCLUDE IN AUTOMATED TESTING)", async function () {
 //     this.timeout(TIMEOUT);  
-//     const src = {address: "", option: 1};
-//     const dest = {address: "", option: 1};
-//     const result = await uber_controller.book_trip(src, dest, 1, cookies);
+//     const src = {address: "Cra. 11 ##93-12, Bogotá, Cundinamarca, Colombia", option: 1};
+//     const dest = {address: "Cra. 11 ##93-12, Bogotá, Cundinamarca, Colombia", option: 1};
+//     const result = await uber_controller.book_trip(src, dest, 1, 1, cookies);
 //     console.log("result is: " + result);
-//     expect(result).to.have.lengthOf.at.least(1);
-//     expect(result[0]).to.match(/^1. UberX/);
+//     expect(result).to.have.lengthOf(2);
+//   });
+// });
+
+// describe("cancel_trip", () => {
+//   it("cancels a trip correctly (THIS BOOKS A REAL TRIP / DO NOT INCLUDE IN AUTOMATED TESTING)", async function () {
+//     this.timeout(TIMEOUT);  
+//     const src = {address: "Cra. 11 ##93-12, Bogotá, Cundinamarca, Colombia", option: 1};
+//     const dest = {address: "Cra. 11 ##93-12, Bogotá, Cundinamarca, Colombia", option: 1};
+//     const result = await uber_controller.book_trip(src, dest, 1, 1, cookies);
+//     console.log(result);
+//     await uber_controller.cancel_trip(cookies);
 //   });
 // });
