@@ -23,7 +23,8 @@
   "devDependencies": {
     "chai": "^4.2.0",
     "mocha": "^6.2.2",
-    "nodemon": "^1.19.4"
+    "nodemon": "^1.19.4",
+    "prompt": "^1.0.0"
   },
   "repository": {
     "type": "git",
