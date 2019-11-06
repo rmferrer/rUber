@@ -4,7 +4,7 @@ const puppeteer = require("puppeteer");
 
 const uri_utils = require("./utils/uri");
 	
-const launchArgs = {
+const defaultLaunchArgs = {
 	headless: false,
 	args: ['--no-sandbox', '--disable-setuid-sandbox']
 }
@@ -186,9 +186,10 @@ const search_payment_options = async (page) => {
 	});
 }
 
-const execute_in_page = async (fnc, cookies) => {
+const execute_in_page = async (fnc, cookies, launchArgs = {}) => {
 	console.log('launching browser');
-	const browser = await puppeteer.launch(launchArgs);
+	const overridenLaunchArgs = Object.assign({}, defaultLaunchArgs, launchArgs);
+	const browser = await puppeteer.launch(overridenLaunchArgs);
 	const page = await browser.newPage();
 	await page.setCookie(...JSON.parse(cookies));
 	
@@ -207,7 +208,7 @@ const execute_in_page = async (fnc, cookies) => {
 	return result;
 }
 
-const execute_in_page_past_auth = async (fnc, cookies) => {
+const execute_in_page_past_auth = async (fnc, cookies, launchArgs = {}) => {
 	const result = await execute_in_page(async (page) => {
 		const uri = uri_utils.base_uri(await page.url());
 
@@ -224,7 +225,7 @@ const execute_in_page_past_auth = async (fnc, cookies) => {
 			result = e.message;
 		}
 		return result;
-	}, cookies);
+	}, cookies, launchArgs);
 	return result;
 }
 
