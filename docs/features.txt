@@ -1,0 +1,13 @@
+features:
+
+- current location
+- save routes
+- choose payment method
+- uber pool seats
+- status / screenshot
+- phone number hypermedia
+- error logs print
+- don't swallow exceptions
+
+- split fare
+- add waypoints
