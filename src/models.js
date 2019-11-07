@@ -12,7 +12,8 @@ const statusCodes = {
 	saveName: "SAVE-NAME",
 	saveAddress: "SAVE-ADDRESS",
 	saveAddressOption: "SAVE-ADDRESS-OPTION",
-	rideInProgress: "RIDE-IN-PROGRESS"
+	rideInProgress: "RIDE-IN-PROGRESS",
+	paymentMethodChoice: "PAYMENT-METHOD-CHOICE"
 }
 
 exports.statusCodes = statusCodes;
