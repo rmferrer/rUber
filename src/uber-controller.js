@@ -33,7 +33,14 @@ const login = async (page, credentials) => {
 	try {
 		await page.focus("input#useridInput.text-input");
 		await page.keyboard.type(credentials.emailAddress);
-		await click_and_wait_ms(page, "button.btn.btn--arrow.btn--full", 60000);
+		await click(page, "button.btn.btn--arrow.btn--full");
+		const hasCaptcha = await page.evaluate(() => !!document.getElementById("recaptcha-accessible-status"));
+		if (hasCaptcha) {
+			console.log("detected captcha on login... waiting 1min for user to sort it out...");
+			await page.waitFor(60000);
+		} else {
+			await page.waitForNavigation({ waitUntil: 'networkidle0' });
+		}
 	} catch (error) {
 		console.error(error);
 		return false;
