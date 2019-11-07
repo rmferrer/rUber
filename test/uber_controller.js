@@ -3,8 +3,8 @@ const expect = require("chai").expect;
 const fs = require("fs");
 const uber_controller = require("../src/uber-controller");
 
-const TIMEOUT = 60000;
-const cookies = fs.readFileSync('cookies.txt', 'utf8');
+const TIMEOUT = 120000;
+const cookies = process.env.UBER_COOKIES
     
 describe("lookup_address", () => {
   it("returns an error for wrong cookies", async function () {
@@ -84,7 +84,9 @@ describe("lookup_payment_options", () => {
 // describe("login_with_totp", () => {
 //   it("logs in successfully", async function () {
 //     this.timeout(TIMEOUT); 
-//     const result = await uber_controller.login_with_totp(process.env.UBER_EMAIL, process.env.UBER_PASSWORD, "791870");
+//     const uCredentials = require("../scripts/get_uber_credentials");
+//     const credentials = await uCredentials.get_uber_credentials();
+//     const result = await uber_controller.login_with_totp(credentials.email, credentials.password, credentials.totp);
 //     expect(result).not.to.eq(null);
 //     try {
 //         JSON.parse(result);

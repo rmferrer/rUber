@@ -14,7 +14,8 @@ const child_choice_selector = (parentSelector, choiceIdx) => {
 }
 
 const click_and_wait_idle = (page, selector) => Promise.all([
-	  page.evaluate((selector) => document.querySelector(selector).click(), selector),
+	  // page.evaluate((selector) => document.querySelector(selector).click(), selector),
+	  page.click(selector),
 	  page.waitForNavigation({ waitUntil: 'networkidle0' }),
 ]);
 
@@ -32,7 +33,7 @@ const login = async (page, credentials) => {
 	try {
 		await page.focus("input#useridInput.text-input");
 		await page.keyboard.type(credentials.emailAddress);
-		await click_and_wait_idle(page, "button.btn.btn--arrow.btn--full");
+		await click_and_wait_ms(page, "button.btn.btn--arrow.btn--full", 60000);
 	} catch (error) {
 		console.error(error);
 		return false;

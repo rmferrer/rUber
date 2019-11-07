@@ -3,6 +3,8 @@
    build:
      docker:
        - image: rmferrer/uber-via-text:test-v1
+         environment:
+           UBER_COOKIES: $UBER_COOKIES
      working_directory: ~/repo
      steps:
        - checkout
