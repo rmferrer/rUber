@@ -10,7 +10,8 @@
   "scripts": {
     "start": "node src/server.js",
     "start-dev": "nodemon src/server",
-    "test": "source .env; mocha test"
+    "test-local": "source .env; mocha test",
+    "test": "mocha test"
   },
   "dependencies": {
     "bluebird": "^3.7.1",
