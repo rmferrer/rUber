@@ -9,7 +9,7 @@ const loginHandler = async (sessionKey, redis) => {
 }
 
 const totpHandler = async (email, password, totp, sessionKey, redis) => {
-  const cookies = await uberController.login_with_totp(email, password, input);
+  const cookies = await uberController.login_with_totp(email, password, totp);
   
   if (cookies) {
     await store.set_session_cookies(sessionKey, cookies, redis);
@@ -110,6 +110,28 @@ const chooseDestHandler = async (input, sessionKey, redis, cookies) => {
 const chooseTravelOptionHandler = async (input, sessionKey, redis, cookies) => {
   const choice = Number(input);
   
+  await store.set_session_travel_option(sessionKey, choice, redis);
+  await store.set_session_status(sessionKey, models.statusCodes.paymentMethodChoice, redis);
+
+  const srcAddress = await store.get_session_source_address(sessionKey, redis);
+  const srcOption = await store.get_session_source_option(sessionKey, redis);
+  const destAddress = await store.get_session_dest_address(sessionKey, redis);
+  const destOption = await store.get_session_dest_option(sessionKey, redis);
+  const src = {
+    address: srcAddress,
+    option: srcOption
+  }
+  const dst = {
+    address: destAddress,
+    option: destOption
+  }
+  const paymentMethods = await uberController.lookup_payment_options(src, dst, cookies);
+  return [paymentMethods.concat(["Which payment method?"]).join('\n\n')];
+}
+
+const choosePaymentMethodHandler = async (input, sessionKey, redis, cookies) => {
+  const paymentMethodChoice = Number(input);
+  
   const srcAddress = await store.get_session_source_address(sessionKey, redis);
   const srcOption = await store.get_session_source_option(sessionKey, redis);
   const destAddress = await store.get_session_dest_address(sessionKey, redis);
@@ -122,7 +144,8 @@ const chooseTravelOptionHandler = async (input, sessionKey, redis, cookies) => {
     address: destAddress,
     option: destOption
   }  
-  const tripDetails = await uberController.book_trip(src, dst, choice, cookies);
+  const travelChoice = await store.get_session_travel_option(sessionKey, redis);
+  const tripDetails = await uberController.book_trip(src, dst, travelChoice, paymentMethodChoice, cookies);
 
   await store.set_session_status(sessionKey, models.statusCodes.rideInProgress, redis);
 
@@ -228,8 +251,15 @@ const inputRouter = async (input, sessionKey, redis) => {
   const sessionStatus = await store.get_session_status(sessionKey, redis);
   const sessionCookies = await store.get_session_cookies(sessionKey, redis);
 
-  if(!sessionCookies && sessionStatus !== models.statusCodes.loggedOut) {
-    return ["You are not logged into Uber. Please login first."]
+  if(!sessionCookies) {
+    if (sessionStatus === models.statusCodes.loggedOut) {
+      return await loginHandler(sessionKey, redis);  
+    }
+    if (sessionStatus === models.statusCodes.totp) {
+      const email = process.env.UBER_EMAIL;
+      const password = process.env.UBER_PASSWORD;
+      return await totpHandler(email, password, input, sessionKey, redis);      
+    }
   }
 
   /* Handle logged in special commands first */
@@ -250,11 +280,9 @@ const inputRouter = async (input, sessionKey, redis) => {
 
   switch(sessionStatus) {
     case models.statusCodes.loggedOut: 
-      return await loginHandler(sessionKey, redis);
+      throw new Error("Cookies nonempty and status code is loggedOut");
     case models.statusCodes.totp: 
-      const email = process.env.UBER_EMAIL;
-      const password = process.env.UBER_PASSWORD;
-      return await totpHandler(email, password, input, sessionKey, redis);
+      throw new Error("Cookies nonempty and status code is totp");
     case models.statusCodes.mainMenu:
       return await mainMenuHandler(input, sessionKey, redis);
     case models.statusCodes.settings:
@@ -275,10 +303,12 @@ const inputRouter = async (input, sessionKey, redis) => {
       return await chooseDestHandler(input, sessionKey, redis, sessionCookies);
     case models.statusCodes.chooseTravelOption:
       return await chooseTravelOptionHandler(input, sessionKey, redis, sessionCookies);
+    case models.statusCodes.paymentMethodChoice:
+      return await choosePaymentMethodHandler(input, sessionKey, redis, sessionCookies);
     case models.statusCodes.rideInProgress:
       return await rideInProgressOptionHandler(input, sessionKey, redis, sessionCookies);
     default:
-      return ["don't have a handler for status :" + sessionStatus]; 
+      return ["don't have a handler for status : " + sessionStatus]; 
   }
 }
 

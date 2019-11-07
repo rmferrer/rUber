@@ -9,7 +9,8 @@ const redisKeys = {
 	cookies: "cookies",
 	tempName: "temp_name",
 	tempAddress: "temp_address",
-	addressBook: "address_book"
+	addressBook: "address_book",
+	travelOption: 'travel_option',
 }
 
 const get_session = async (key, redis) => {
@@ -45,8 +46,13 @@ const set_session_source_option = async (key, sourceOption, redis) => {
 const set_session_dest_address = async (key, destQuery, redis) => {
 	await redis.hmsetAsync(key, redisKeys.destQuery, destQuery);
 }
+
 const set_session_dest_option = async (key, destOption, redis) => {
 	await redis.hmsetAsync(key, redisKeys.destOption, destOption);
+}
+
+const set_session_travel_option = async (key, travelOption, redis) => {
+	await redis.hmsetAsync(key, redisKeys.travelOption, travelOption);
 }
 
 const get_session_source_address = async (key, redis) => {
@@ -67,6 +73,11 @@ const get_session_dest_address = async (key, redis) => {
 const get_session_dest_option = async (key, redis) => {
 	const session = await get_session(key, redis);
 	return session[redisKeys.destOption];
+}
+
+const get_session_travel_option = async (key, redis) => {
+	const session = await get_session(key, redis);
+	return session[redisKeys.travelOption];
 }
 
 const nuke_session = async(key, redis) => {
@@ -130,10 +141,12 @@ exports.set_session_source_address = set_session_source_address;
 exports.set_session_source_option = set_session_source_option;
 exports.set_session_dest_address = set_session_dest_address;
 exports.set_session_dest_option = set_session_dest_option;
+exports.set_session_travel_option = set_session_travel_option;
 exports.get_session_source_address = get_session_source_address;
 exports.get_session_source_option = get_session_source_option;
 exports.get_session_dest_address = get_session_dest_address;
 exports.get_session_dest_option = get_session_dest_option;
+exports.get_session_travel_option = get_session_travel_option;
 exports.get_session = get_session;
 exports.nuke_session = nuke_session;
 exports.logout_session = logout_session;
