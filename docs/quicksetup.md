@@ -17,7 +17,7 @@ so **it's all free.**
     
 ### 1/3 Setup your own server
 
-0. **The code**: clone [this](https://github.com/rmferrer/uber-by-text) repository from Github. 
+0. **The code**: clone [this](https://github.com/rmferrer/rUber) repository from Github. 
 
 1. **The server running the code ^**: 
     

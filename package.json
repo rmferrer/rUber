@@ -1,5 +1,5 @@
 {
-  "name": "uber-by-text",
+  "name": "rUber",
   "version": "0.0.0",
   "description": "Service for ordering Uber via text message",
   "private": true,
@@ -29,7 +29,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/rmferrer/uber-by-text"
+    "url": "https://github.com/rmferrer/rUber"
   },
   "keywords": [],
   "license": "MIT"
