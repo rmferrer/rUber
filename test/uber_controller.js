@@ -86,7 +86,7 @@ describe("lookup_payment_options", () => {
 //     this.timeout(TIMEOUT); 
 //     const uCredentials = require("../scripts/get_uber_credentials");
 //     const credentials = await uCredentials.get_uber_credentials();
-//     const result = await uber_controller.login_with_totp(credentials.email, credentials.password, credentials.totp);
+//     const result = await uber_controller.login_with_totp(credentials);
 //     expect(result).not.to.eq(null);
 //     try {
 //         JSON.parse(result);
