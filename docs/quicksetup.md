@@ -70,7 +70,8 @@ this reason you need to manually log into uber, get your cookies and insert them
 apps Redis db.
 
 1. Using a desktop browser log into your Uber account at https://m.uber.com
-    - 
+
+to get your cookies run the test login_with_totp and print the return value.
 
 
 
