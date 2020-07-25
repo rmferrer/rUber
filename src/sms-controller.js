@@ -3,12 +3,12 @@ const uberController = require('./uber-controller');
 const store = require('./store');
 const models = require('./models');
 
-const loginHandler = async (sessionKey, redis) => {
+const _loginHandler = async (sessionKey, redis) => {
   await store.set_session_status(sessionKey, models.statusCodes.totp, redis);
   return ["Enter TOTP for auth (empty if you don't have 2FA):"];
 }
 
-const totpHandler = async (credentials, sessionKey, redis) => {
+const _totpHandler = async (credentials, sessionKey, redis) => {
   const cookies = await uberController.login_with_totp(credentials);
   
   if (cookies) {
@@ -19,12 +19,12 @@ const totpHandler = async (credentials, sessionKey, redis) => {
   return ["Logged in: " + (cookies != null) + (cookies != null ? "\nMain menu:\nride/r\nsettings/s" : "Try entering TOTP again.")];
 }
 
-const newRideHandler = async (sessionKey, redis) => {
+const _newRideHandler = async (sessionKey, redis) => {
   await store.set_session_status(sessionKey, models.statusCodes.inputSource, redis);
   return ["Where from?"];
 }
 
-const inputSourceHandler = async (input, sessionKey, redis, cookies) => {
+const _inputSourceHandler = async (input, sessionKey, redis, cookies) => {
   const resolvedAddress = await store.resolve_address(sessionKey, input, redis);
   if (resolvedAddress) {
     await store.set_session_status(sessionKey, models.statusCodes.inputDest, redis);
@@ -39,7 +39,7 @@ const inputSourceHandler = async (input, sessionKey, redis, cookies) => {
   return [response];
 }
 
-const chooseSourceHandler = async (input, sessionKey, redis) => {
+const _chooseSourceHandler = async (input, sessionKey, redis) => {
   const choice = Number(input);
   
   if (choice === 0) {
@@ -53,7 +53,7 @@ const chooseSourceHandler = async (input, sessionKey, redis) => {
   return ["Where to?"];
 }
 
-const inputDestHandler = async (input, sessionKey, redis, cookies) => {
+const _inputDestHandler = async (input, sessionKey, redis, cookies) => {
   const resolvedAddress = await store.resolve_address(sessionKey, input, redis);
   if (resolvedAddress) {
     await store.set_session_status(sessionKey, models.statusCodes.chooseTravelOption, redis);
@@ -80,7 +80,7 @@ const inputDestHandler = async (input, sessionKey, redis, cookies) => {
   return [response];
 }
 
-const chooseDestHandler = async (input, sessionKey, redis, cookies) => {
+const _chooseDestHandler = async (input, sessionKey, redis, cookies) => {
   const choice = Number(input);
   
   if (choice === 0) {
@@ -107,7 +107,7 @@ const chooseDestHandler = async (input, sessionKey, redis, cookies) => {
   return [rates.concat(["Which option?"]).join('\n\n')];
 }
 
-const chooseTravelOptionHandler = async (input, sessionKey, redis, cookies) => {
+const _chooseTravelOptionHandler = async (input, sessionKey, redis, cookies) => {
   const choice = Number(input);
   
   await store.set_session_travel_option(sessionKey, choice, redis);
@@ -129,8 +129,8 @@ const chooseTravelOptionHandler = async (input, sessionKey, redis, cookies) => {
   return [paymentMethods.concat(["Which payment method?"]).join('\n\n')];
 }
 
-const choosePaymentMethodHandler = async (input, sessionKey, redis, cookies) => {
-  const paymentMethodChoice = Number(input);
+const _choosePaymentProfileHandler = async (input, sessionKey, redis, cookies) => {
+  const paymentProfileChoice = Number(input);
   
   const srcAddress = await store.get_session_source_address(sessionKey, redis);
   const srcOption = await store.get_session_source_option(sessionKey, redis);
@@ -145,31 +145,31 @@ const choosePaymentMethodHandler = async (input, sessionKey, redis, cookies) => 
     option: destOption
   }  
   const travelChoice = await store.get_session_travel_option(sessionKey, redis);
-  const tripDetails = await uberController.book_trip(src, dst, travelChoice, paymentMethodChoice, cookies);
+  const tripDetails = await uberController.book_trip(src, dst, travelChoice, paymentProfileChoice, cookies);
 
   await store.set_session_status(sessionKey, models.statusCodes.rideInProgress, redis);
 
   return tripDetails;
 }
 
-const logoutHandler = async (sessionKey, redis) => {
+const _logoutHandler = async (sessionKey, redis) => {
   await store.logout_session(sessionKey, redis);
   return ["Logged out."];
 }
 
-const nukeHandler = async (sessionKey, redis) => {
+const _nukeHandler = async (sessionKey, redis) => {
   await store.nuke_session(sessionKey, redis);
   return ["Nuked session! Booom shakalaka"];
 }
 
-const mainMenuSpecialCommandHandler = async (sessionKey, redis) => {
+const _mainMenuSpecialCommandHandler = async (sessionKey, redis) => {
   await store.set_session_status(sessionKey, models.statusCodes.mainMenu, redis);
   return ["Main menu:\nride/r\nsettings/s"];
 }
 
-const mainMenuHandler = async (input, sessionKey, redis) => {
+const _mainMenuHandler = async (input, sessionKey, redis) => {
   if (input === "r" || input === "ride") {
-    return await newRideHandler(sessionKey, redis);
+    return await _newRideHandler(sessionKey, redis);
   } 
   if (input === "s" || input === "settings") {
     await store.set_session_status(sessionKey, models.statusCodes.settings, redis);
@@ -178,7 +178,7 @@ const mainMenuHandler = async (input, sessionKey, redis) => {
   return ["unrecognized menu command. try ride/r or settings/s"];
 }
 
-const settingsHandler = async (input, sessionKey, redis) => {
+const _settingsHandler = async (input, sessionKey, redis) => {
   if (input === "s" || input === "save address") {
     await store.set_session_status(sessionKey, models.statusCodes.saveName, redis);
     return ["enter name to save address by: "];
@@ -196,13 +196,13 @@ const settingsHandler = async (input, sessionKey, redis) => {
   return ["unrecognized menu command.\ntry:\nsave address/s\nshow address book/a"];
 }
 
-const saveNameHandler = async (input, sessionKey, redis) => {
+const _saveNameHandler = async (input, sessionKey, redis) => {
   await store.save_temp_address_name(input, sessionKey, redis);
   await store.set_session_status(sessionKey, models.statusCodes.saveAddress, redis);
   return ["enter address: "];
 }
 
-const saveAddressHandler = async (input, sessionKey, redis, cookies) => {
+const _saveAddressHandler = async (input, sessionKey, redis, cookies) => {
   const addresses = await uberController.lookup_address(input, cookies);
   response = ["0. Reenter address."].concat(addresses).concat(["Which option?"]).join('\n\n');
   await store.save_temp_address_address(input, sessionKey, redis);
@@ -210,7 +210,7 @@ const saveAddressHandler = async (input, sessionKey, redis, cookies) => {
   return [response];
 }
 
-const rideInProgressOptionHandler = async (input, sessionKey, redis, cookies) => {
+const _rideInProgressOptionHandler = async (input, sessionKey, redis, cookies) => {
   switch (input) {
     case "cancel":
       const success = await uberController.cancel_trip(cookies);
@@ -225,7 +225,7 @@ const rideInProgressOptionHandler = async (input, sessionKey, redis, cookies) =>
   }
 }
 
-const saveAddressOptionHandler = async (input, sessionKey, redis) => {
+const _saveAddressOptionHandler = async (input, sessionKey, redis) => {
   const choice = Number(input);
   
   if (choice === 0) {
@@ -242,7 +242,7 @@ const saveAddressOptionHandler = async (input, sessionKey, redis) => {
   return ["address saved! back to main menu"];
 }
 
-const inputRouter = async (input, sessionKey, redis) => {
+const _inputRouter = async (input, sessionKey, redis) => {
   /* Handle logged out special commands first */
   if (input === "radio-check") {
     return ["Radio check! One two. Check check. One two. Check!"];
@@ -253,7 +253,7 @@ const inputRouter = async (input, sessionKey, redis) => {
 
   if(!sessionCookies) {
     if (sessionStatus === models.statusCodes.loggedOut) {
-      return await loginHandler(sessionKey, redis);  
+      return await _loginHandler(sessionKey, redis);  
     }
     if (sessionStatus === models.statusCodes.totp) {
       const countryCode = process.env.UBER_COUNTRY_CODE;
@@ -265,23 +265,23 @@ const inputRouter = async (input, sessionKey, redis) => {
         password: process.env.UBER_PASSWORD,
         totp: input
       }
-      return await totpHandler(credentials, sessionKey, redis);      
+      return await _totpHandler(credentials, sessionKey, redis);      
     }
   }
 
   /* Handle logged in special commands first */
   if (input === "menu") {
-    return await mainMenuSpecialCommandHandler(sessionKey, redis);
+    return await _mainMenuSpecialCommandHandler(sessionKey, redis);
   }
   /* Handle special commands first */
   if (input === "u") {
-    return await newRideHandler(sessionKey, redis);
+    return await _newRideHandler(sessionKey, redis);
   } 
   if (input === "logout") {
-    return await logoutHandler(sessionKey, redis);
+    return await _logoutHandler(sessionKey, redis);
   }
   if (input === "nuke") {
-    return await nukeHandler(sessionKey, redis);
+    return await _nukeHandler(sessionKey, redis);
   }
 
 
@@ -291,29 +291,29 @@ const inputRouter = async (input, sessionKey, redis) => {
     case models.statusCodes.totp: 
       throw new Error("Cookies nonempty and status code is totp");
     case models.statusCodes.mainMenu:
-      return await mainMenuHandler(input, sessionKey, redis);
+      return await _mainMenuHandler(input, sessionKey, redis);
     case models.statusCodes.settings:
-      return await settingsHandler(input, sessionKey, redis);
+      return await _settingsHandler(input, sessionKey, redis);
     case models.statusCodes.saveName:
-      return await saveNameHandler(input, sessionKey, redis);
+      return await _saveNameHandler(input, sessionKey, redis);
     case models.statusCodes.saveAddress:
-      return await saveAddressHandler(input, sessionKey, redis, sessionCookies);
+      return await _saveAddressHandler(input, sessionKey, redis, sessionCookies);
     case models.statusCodes.saveAddressOption:
-      return await saveAddressOptionHandler(input, sessionKey, redis);
+      return await _saveAddressOptionHandler(input, sessionKey, redis);
     case models.statusCodes.inputSource:
-      return await inputSourceHandler(input, sessionKey, redis, sessionCookies);
+      return await _inputSourceHandler(input, sessionKey, redis, sessionCookies);
     case models.statusCodes.chooseSource:
-      return await chooseSourceHandler(input, sessionKey, redis);
+      return await _chooseSourceHandler(input, sessionKey, redis);
     case models.statusCodes.inputDest:
-      return await inputDestHandler(input, sessionKey, redis, sessionCookies);
+      return await _inputDestHandler(input, sessionKey, redis, sessionCookies);
     case models.statusCodes.chooseDest:
-      return await chooseDestHandler(input, sessionKey, redis, sessionCookies);
+      return await _chooseDestHandler(input, sessionKey, redis, sessionCookies);
     case models.statusCodes.chooseTravelOption:
-      return await chooseTravelOptionHandler(input, sessionKey, redis, sessionCookies);
+      return await _chooseTravelOptionHandler(input, sessionKey, redis, sessionCookies);
     case models.statusCodes.paymentMethodChoice:
-      return await choosePaymentMethodHandler(input, sessionKey, redis, sessionCookies);
+      return await _choosePaymentProfileHandler(input, sessionKey, redis, sessionCookies);
     case models.statusCodes.rideInProgress:
-      return await rideInProgressOptionHandler(input, sessionKey, redis, sessionCookies);
+      return await _rideInProgressOptionHandler(input, sessionKey, redis, sessionCookies);
     default:
       return ["don't have a handler for status : " + sessionStatus]; 
   }
@@ -328,7 +328,7 @@ const smsHandler = async (request, redis, twilio) => {
   console.log("[SMS Handler] From: \n" + from);
   console.log("[SMS Handler] Input: \n" + input);
 
-  inputRouter(input, from, redis).then((messages) => {
+  _inputRouter(input, from, redis).then((messages) => {
     console.log("Async handler finished. Sending: " + messages.join("\n"));
     console.log("From: " + from);
     console.log("To: " + to);
