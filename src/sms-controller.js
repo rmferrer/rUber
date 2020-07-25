@@ -125,8 +125,8 @@ const _chooseTravelOptionHandler = async (input, sessionKey, redis, cookies) => 
     address: destAddress,
     option: destOption
   }
-  const paymentMethods = await uberController.lookup_payment_options(src, dst, cookies);
-  return [paymentMethods.concat(["Which payment method?"]).join('\n\n')];
+  const paymentProfiles = await uberController.lookup_payment_profiles(src, dst, cookies);
+  return [paymentProfiles.concat(["Which payment profile?"]).join('\n\n')];
 }
 
 const _choosePaymentProfileHandler = async (input, sessionKey, redis, cookies) => {

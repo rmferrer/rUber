@@ -56,27 +56,27 @@ describe("lookup_rates", () => {
   });
 });
 
-describe("lookup_payment_options", () => {
+describe("lookup_payment_profiles", () => {
   it("returns an error for wrong cookies", async function () {
     this.timeout(TIMEOUT);
     const src = {address: "1 facEbOok WAy", option: 1};
     const dest = {address: "1 infinite lOOp", option: 1};
-    const result = await uber_controller.lookup_payment_options(src, dest, '[]');
+    const result = await uber_controller.lookup_payment_profiles(src, dest, '[]');
     expect(result).to.eq("Error: uber auth failed.");
   });
   it("returns a correct result for a possible route", async function () {
     this.timeout(TIMEOUT);  
     const src = {address: "1 facEbOok WAy", option: 1};
     const dest = {address: "1 infinite lOOp", option: 1};
-    const result = await uber_controller.lookup_payment_options(src, dest, cookies);
+    const result = await uber_controller.lookup_payment_profiles(src, dest, cookies);
     expect(result).to.have.lengthOf.at.least(1);
-    expect(result[result.length - 1]).to.match(/Cash/);
+    expect(result[result.length - 1]).to.match(/Business|Personal/);
   });
   it("returns an empty list for impossible routes", async function () {
     this.timeout(TIMEOUT);  
     const src = {address: "1 facEbOok WAy", option: 1};
     const dest = {address: "caminito buenos aires", option: 1};
-    const result = await uber_controller.lookup_payment_options(src, dest, cookies);
+    const result = await uber_controller.lookup_payment_profiles(src, dest, cookies);
     expect(result).to.be.empty;
   });
 });

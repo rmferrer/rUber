@@ -9,26 +9,36 @@ const defaultLaunchArgs = {
 	args: ['--no-sandbox', '--disable-setuid-sandbox']
 }
 
-const child_choice_selector = (parentSelector, choiceIdx) => {
+const _child_choice_selector = (parentSelector, choiceIdx) => {
 	return parentSelector +":nth-child(" + choiceIdx + ")";
 }
 
-const click_and_wait_idle = (page, selector) => Promise.all([
+const _click_and_wait_idle = (page, selector) => Promise.all([
 	  // page.evaluate((selector) => document.querySelector(selector).click(), selector),
 	  page.click(selector),
 	  page.waitForNavigation({ waitUntil: 'networkidle0' }),
 ]);
 
-const click = (page, selector) => Promise.all([
+const _click = (page, selector) => Promise.all([
 	  page.evaluate((selector) => document.querySelector(selector).click(), selector),
 ]);
 
-const click_and_wait_ms = (page, selector, ms) => Promise.all([
+const _click_and_wait_ms = async (page, selector, ms) => {
+	  await page.click(selector);
+}
+
+const _click_and_wait_ms_deprecated = (page, selector, ms) => Promise.all([
 	  page.evaluate((selector) => document.querySelector(selector).click(), selector),
       page.waitFor(ms),
 ]);
 
-const login = async (page, credentials) => {
+const _wait_for_selector = async (page, selector, delay, timeout) => {
+	await page.waitForSelector(selector, {timeout: timeout});
+	await page.waitFor(delay);
+}
+
+
+const _login = async (page, credentials) => {
 	const COUNTRY_CODE_SELECTOR = "select[name=countryCode]"
 	const PHONE_NUMBER_SELECTOR = "input#mobile[name=phoneNumber]"
 	const NEXT_BUTTON_SELECTOR = "button#next-button[type=submit]"
@@ -40,7 +50,7 @@ const login = async (page, credentials) => {
 		// await page.focus("select[name=countryCode]");
 		await page.select(COUNTRY_CODE_SELECTOR, credentials.countryCode);
 		await page.type(PHONE_NUMBER_SELECTOR, credentials.phoneNumber);
-		await click_and_wait_ms(page, NEXT_BUTTON_SELECTOR, 5000);
+		await _click_and_wait_ms(page, NEXT_BUTTON_SELECTOR, 5000);
 		const hasCaptcha = await page.evaluate(() => !!document.getElementById("recaptcha-accessible-status"));
 		if (hasCaptcha) {
 			console.log("detected captcha on login... waiting 1min for user to sort it out...");
@@ -56,7 +66,7 @@ const login = async (page, credentials) => {
 		console.log("[LOGIN] Entering TOTP.");
 		try {
 			await page.type(TOTP_SELECTOR, credentials.totp);
-			await click_and_wait_idle(page, NEXT_BUTTON_SELECTOR);
+			await _click_and_wait_idle(page, NEXT_BUTTON_SELECTOR);
 		} catch (error) {
 			console.error(error);
 			return false;
@@ -69,7 +79,7 @@ const login = async (page, credentials) => {
 	try {
 		await page.focus(PASSWORD_SELECTOR);
 		await page.keyboard.type(credentials.password);
-		await click_and_wait_ms(page, NEXT_BUTTON_SELECTOR, 5000);
+		await _click_and_wait_ms(page, NEXT_BUTTON_SELECTOR, 5000);
 	} catch (error) {
 		console.error(error);
 		return false;
@@ -78,24 +88,24 @@ const login = async (page, credentials) => {
 	return await page.url() == "https://m.uber.com/looking";
 }
 
-const enter_address = async (address, page) => {
+const _enter_address = async (address, page) => {
 	await page.focus('input');
 	await page.keyboard.type(address);
 	await page.waitFor(2000);
 }
 
-const click_address_option = async (option, page) => {
-	const choiceSelector = child_choice_selector("div[data-test=list-container] > div", option);
-	await click_and_wait_idle(page, choiceSelector);
+const _click_address_option = async (option, page) => {
+	const choiceSelector = _child_choice_selector("div[data-test=list-container] > div", option);
+	await _click_and_wait_idle(page, choiceSelector);
 }
 
-const enter_and_click_address = async (address, page) => {
-	await enter_address(address.address, page);
-	await click_address_option(address.option, page);
+const _enter_and_click_address = async (address, page) => {
+	await _enter_address(address.address, page);
+	await _click_address_option(address.option, page);
 }
 
-const search_address = async (address, page) => {
-	await enter_address(address, page);
+const _search_address = async (address, page) => {
+	await _enter_address(address, page);
 	
 	const results = await page.evaluate(() => {
 		const results = Array.from(document.querySelectorAll("div[data-test=list-container] > div"));
@@ -108,22 +118,22 @@ const search_address = async (address, page) => {
 	return results;
 }
 
-const order_trip = async (travelChoice, paymentChoice, page) => {
+const _order_trip = async (travelChoice, paymentChoice, page) => {
 	// select ride option
 	await page.waitForSelector("div[data-test=tiers-container] > div[data-test=vehicle-view-container]");	
-	const travelChoiceSelector = child_choice_selector("div[data-test=tiers-container] > div[data-test=vehicle-view-container]", travelChoice) + " > div";
-	await click_and_wait_ms(page, travelChoiceSelector, 1000);
+	const travelChoiceSelector = _child_choice_selector("div[data-test=tiers-container] > div[data-test=vehicle-view-container]", travelChoice) + " > div";
+	await _click_and_wait_ms(page, travelChoiceSelector, 1000);
 
 	// select payment method
 	await page.waitForSelector("div[data-test=request-trip-button-container] > div", {timeout: 10000});
-	await click_and_wait_idle(page, "div[data-test=request-trip-button-container] > div");
-	await click_and_wait_ms(page, "div[data-test=list-container] > span > div + div", 500);
-	const paymentChoiceSelector = child_choice_selector("span > div[data-test=list-container] > div", paymentChoice);
-	await click_and_wait_ms(page, paymentChoiceSelector, 1000);
+	await _click_and_wait_idle(page, "div[data-test=request-trip-button-container] > div");
+	await _click_and_wait_ms(page, "div[data-test=list-container] > span > div + div", 500);
+	const paymentChoiceSelector = _child_choice_selector("span > div[data-test=list-container] > div", paymentChoice);
+	await _click_and_wait_ms(page, paymentChoiceSelector, 1000);
 	
 	// submit order
 	await page.waitForSelector("div[data-test=request-trip-button-container] > button");
-	await click_and_wait_ms(page, "div[data-test=request-trip-button-container] > button", 1000);
+	await _click_and_wait_ms(page, "div[data-test=request-trip-button-container] > button", 1000);
 	
 	// handle uber pool selection
 	console.log("checking for pool");
@@ -131,7 +141,7 @@ const order_trip = async (travelChoice, paymentChoice, page) => {
 	console.log("isPool = " + isPool);
 	if (isPool) {
 		console.log("uber pool selection detected. asking for only 1 seat...")
-		await click(page, "div[data-test=background] + div + div > div > div:nth-child(2)");			
+		await _click(page, "div[data-test=background] + div + div > div > div:nth-child(2)");			
 	}
 
 	// handle surge pricing
@@ -140,18 +150,18 @@ const order_trip = async (travelChoice, paymentChoice, page) => {
 	console.log("isSurge = " + isSurge);
 	if (isSurge) {
 		console.log("surge pricing detected. agreeing to higher fares.");
-		await click(page, "div[data-test=question-description] + div > div + div > button");
+		await _click(page, "div[data-test=question-description] + div > div + div > button");
 	}
 
 	await page.waitForFunction(() => !!document.querySelector("div[data-test=top-section-container]") && document.querySelector("div[data-test=top-section-container]").innerText.indexOf("Your driver") > -1);
 	const ride_details = await page.evaluate(() => document.querySelector("div[data-test=bottom-section-container] > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1)").innerText);
-	await click(page, "div[data-test=bottom-section-container] > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1)");
+	await _click(page, "div[data-test=bottom-section-container] > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1)");
 	const phone_details = await page.evaluate(() => document.querySelector("div[data-test=x-mark] + div").firstChild.childNodes[1].innerText);
 	const phone_number = "+" + phone_details.split("+")[1];
 	return [ride_details, phone_number];
 }
 
-const search_rates = async (page) => {
+const _search_rates = async (page) => {
 	try {
 		await page.waitForSelector("div[data-test=finalise-container]", {timeout: 10000});
 	} catch (e) {
@@ -164,24 +174,28 @@ const search_rates = async (page) => {
 	});
 }
 
-const search_payment_options = async (page) => {
+const _search_payment_profiles = async (page) => {
+	const PAYMENT_OPTION_SELECTOR = "div[data-test=request-trip-button-container] > div"
+
 	try {
-		await page.waitForSelector("div[data-test=request-trip-button-container] > div", {timeout: 10000});
+		await _wait_for_selector(page, PAYMENT_OPTION_SELECTOR, 5000, 10000);
 	} catch (e) {
 		console.log("Timed out waiting for payment options. Probably something wrong with the route");
 		return [];
 	}
-	await click_and_wait_idle(page, "div[data-test=request-trip-button-container] > div");
-	await click_and_wait_ms(page, "div[data-test=list-container] > span > div + div", 500);
-	
-	return await page.evaluate(() => {
-		const results = Array.from(document.querySelectorAll("span > div[data-test=list-container] > div"));
+    await page.click(PAYMENT_OPTION_SELECTOR)
+
+	const results = await page.evaluate(() => {
+		const RESULTS_SELECTOR = "div[data-test=list-container] > span > div"
+
+		const results = Array.from(document.querySelectorAll(RESULTS_SELECTOR));
 		results.splice(-1, 1);
 		return results.map((item,idx) => (idx+1) + ". " + item.innerText)
 	});
+	return results;
 }
 
-const execute_in_page = async (fnc, cookies, launchArgs = {}) => {
+const _execute_in_page = async (fnc, cookies, launchArgs = {}) => {
 	console.log('launching browser');
 	const overridenLaunchArgs = Object.assign({}, defaultLaunchArgs, launchArgs);
 	const browser = await puppeteer.launch(overridenLaunchArgs);
@@ -203,8 +217,8 @@ const execute_in_page = async (fnc, cookies, launchArgs = {}) => {
 	return result;
 }
 
-const execute_in_page_past_auth = async (fnc, cookies, launchArgs = {}) => {
-	const result = await execute_in_page(async (page) => {
+const _execute_in_page_past_auth = async (fnc, cookies, launchArgs = {}) => {
+	const result = await _execute_in_page(async (page) => {
 		const uri = uri_utils.base_uri(await page.url());
 
 		if (uri != "https://m.uber.com") {
@@ -225,11 +239,11 @@ const execute_in_page_past_auth = async (fnc, cookies, launchArgs = {}) => {
 }
 
 const login_with_totp = async (credentials) => {
-	return await execute_in_page(async (page) => {
+	return await _execute_in_page(async (page) => {
 		const uri = uri_utils.base_uri(await page.url());
 		if (uri == "https://auth.uber.com") {
 			console.error("[AUTH] Not logged in. Logging in.")
-			const loggedIn = await login(page, credentials);
+			const loggedIn = await _login(page, credentials);
 			console.log("[AUTH] Logged in succeeded: " + loggedIn)
 			return loggedIn ? JSON.stringify(await page.cookies()) : null;
 		} else if (uri == "https://m.uber.com") {
@@ -243,34 +257,34 @@ const login_with_totp = async (credentials) => {
 }
 
 const lookup_address = async (queryAddress, cookies) => {
-	return await execute_in_page_past_auth(async (page) => {
-		return await search_address(queryAddress, page);
+	return await _execute_in_page_past_auth(async (page) => {
+		return await _search_address(queryAddress, page);
 	}, cookies);
 }
 
 const lookup_rates = async (src, dest, cookies) => {
-	return await execute_in_page_past_auth(async (page) => {
-		await enter_and_click_address(src, page);
-		await enter_and_click_address(dest, page);
-		return await search_rates(page);
+	return await _execute_in_page_past_auth(async (page) => {
+		await _enter_and_click_address(src, page);
+		await _enter_and_click_address(dest, page);
+		return await _search_rates(page);
 	}, cookies);
 }
 
 const book_trip = async (src, dest, travel_option, payment_option, cookies) => {
-	return await execute_in_page_past_auth(async (page) => {
-		await enter_and_click_address(src, page);
-		await enter_and_click_address(dest, page);
-		return await order_trip(travel_option, payment_option, page);
+	return await _execute_in_page_past_auth(async (page) => {
+		await _enter_and_click_address(src, page);
+		await _enter_and_click_address(dest, page);
+		return await _order_trip(travel_option, payment_option, page);
 	}, cookies);
 }
 
 const cancel_trip = async (cookies) => {
-	return await execute_in_page_past_auth(async (page) => {
+	return await _execute_in_page_past_auth(async (page) => {
 		try {
 			await page.waitForSelector("div[data-test=list-container] + div > div > button");
-			await click_and_wait_ms(page, "div[data-test=list-container] + div > div > button", 1000);
+			await _click_and_wait_ms(page, "div[data-test=list-container] + div > div > button", 1000);
 			await page.waitForSelector("div[data-test=question-description] + div > div + div > button");
-			await click_and_wait_ms(page, "div[data-test=question-description] + div > div + div > button", 1000);
+			await _click_and_wait_ms(page, "div[data-test=question-description] + div > div + div > button", 1000);
 		} catch (error) {
 			console.log("error cancelling trip: " + error);
 			return false;	
@@ -279,11 +293,11 @@ const cancel_trip = async (cookies) => {
 	}, cookies);
 }
 
-const lookup_payment_options = async (src, dest, cookies) => {
-	return await execute_in_page_past_auth(async (page) => {
-		await enter_and_click_address(src, page);
-		await enter_and_click_address(dest, page);
-		return await search_payment_options(page);
+const lookup_payment_profiles = async (src, dest, cookies) => {
+	return await _execute_in_page_past_auth(async (page) => {
+		await _enter_and_click_address(src, page);
+		await _enter_and_click_address(dest, page);
+		return await _search_payment_profiles(page);
 	}, cookies);
 }
 
@@ -291,6 +305,6 @@ const lookup_payment_options = async (src, dest, cookies) => {
 exports.login_with_totp = login_with_totp;
 exports.lookup_address = lookup_address;
 exports.lookup_rates = lookup_rates;
-exports.lookup_payment_options = lookup_payment_options;
+exports.lookup_payment_profiles = lookup_payment_profiles;
 exports.book_trip = book_trip;
 exports.cancel_trip = cancel_trip;
