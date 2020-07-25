@@ -4,7 +4,7 @@ const credentials = require("get_uber_credentials");
 const getUberCookies = async () => {
   const uberCredentials = await credentials.get_uber_credentials();
   try {
-    return await uber_controller.login_with_totp(uberCredentials.email, uberCredentials.password, uberCredentials.totp);
+    return await uber_controller.login_with_totp(uberCredentials);
   } catch(e) {
     console.log(e);
   }          

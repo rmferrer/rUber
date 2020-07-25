@@ -8,8 +8,8 @@ const loginHandler = async (sessionKey, redis) => {
   return ["Enter TOTP for auth (empty if you don't have 2FA):"];
 }
 
-const totpHandler = async (email, password, totp, sessionKey, redis) => {
-  const cookies = await uberController.login_with_totp(email, password, totp);
+const totpHandler = async (credentials, sessionKey, redis) => {
+  const cookies = await uberController.login_with_totp(credentials);
   
   if (cookies) {
     await store.set_session_cookies(sessionKey, cookies, redis);
@@ -256,9 +256,16 @@ const inputRouter = async (input, sessionKey, redis) => {
       return await loginHandler(sessionKey, redis);  
     }
     if (sessionStatus === models.statusCodes.totp) {
-      const email = process.env.UBER_EMAIL;
+      const countryCode = process.env.UBER_COUNTRY_CODE;
+      const phoneNumber = process.env.UBER_PHONE_NUMBER;
       const password = process.env.UBER_PASSWORD;
-      return await totpHandler(email, password, input, sessionKey, redis);      
+      credentials = {
+        countryCode: process.env.UBER_COUNTRY_CODE,
+        phoneNumber: process.env.UBER_PHONE_NUMBER,
+        password: process.env.UBER_PASSWORD,
+        totp: input
+      }
+      return await totpHandler(credentials, sessionKey, redis);      
     }
   }
 

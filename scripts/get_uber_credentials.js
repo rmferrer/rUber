@@ -2,8 +2,12 @@ const prompt = require('prompt');
 
 const schema = {
   properties: {
-    email: {
-      description: "Enter your Uber email",
+    countryCode: {
+      description: "Enter your Uber phone number country code",
+      required: true
+    },
+    phoneNumber: {
+      description: "Enter your Uber phone number",
       required: true
     },
     password: {

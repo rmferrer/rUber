@@ -29,47 +29,50 @@ const click_and_wait_ms = (page, selector, ms) => Promise.all([
 ]);
 
 const login = async (page, credentials) => {
-	console.log("[LOGIN] Entering email address.");
+	const COUNTRY_CODE_SELECTOR = "select[name=countryCode]"
+	const PHONE_NUMBER_SELECTOR = "input#mobile[name=phoneNumber]"
+	const NEXT_BUTTON_SELECTOR = "button#next-button[type=submit]"
+	const TOTP_SELECTOR = "input#totp[name=totp][type=text]"
+	const PASSWORD_SELECTOR = "input#password[name=password][type=password]"
+
+	console.log("[LOGIN] Entering phone number.");
 	try {
-		await page.focus("input#useridInput.text-input");
-		await page.keyboard.type(credentials.emailAddress);
-		await click(page, "button.btn.btn--arrow.btn--full");
+		// await page.focus("select[name=countryCode]");
+		await page.select(COUNTRY_CODE_SELECTOR, credentials.countryCode);
+		await page.type(PHONE_NUMBER_SELECTOR, credentials.phoneNumber);
+		await click_and_wait_ms(page, NEXT_BUTTON_SELECTOR, 5000);
 		const hasCaptcha = await page.evaluate(() => !!document.getElementById("recaptcha-accessible-status"));
 		if (hasCaptcha) {
 			console.log("detected captcha on login... waiting 1min for user to sort it out...");
 			await page.waitFor(60000);
-		} else {
-			await page.waitForNavigation({ waitUntil: 'networkidle0' });
 		}
 	} catch (error) {
 		console.error(error);
 		return false;
 	}
 
-
-	console.log("[LOGIN] Entering password.");
 	try {
-		await page.focus("input#password.text-input");
-		await page.keyboard.type(credentials.password);
-		await click_and_wait_ms(page, "button.btn.btn--arrow.btn--full", 1000);
-	} catch (error) {
-		console.error(error);
-		return false;
-	}
-
-	try {
-		await page.$("input#totp.text-input");
+		await page.$();
 		console.log("[LOGIN] Entering TOTP.");
 		try {
-			await page.focus("input#totp.text-input");
-			await page.keyboard.type(credentials.totp);
-			await click_and_wait_idle(page, "button.btn.btn--arrow.btn--full");
+			await page.type(TOTP_SELECTOR, credentials.totp);
+			await click_and_wait_idle(page, NEXT_BUTTON_SELECTOR);
 		} catch (error) {
 			console.error(error);
 			return false;
 		}		
 	} catch (error) {
 		await page.waitForNavigation({ waitUntil: 'networkidle0' });
+	}
+
+	console.log("[LOGIN] Entering password.");
+	try {
+		await page.focus(PASSWORD_SELECTOR);
+		await page.keyboard.type(credentials.password);
+		await click_and_wait_ms(page, NEXT_BUTTON_SELECTOR, 5000);
+	} catch (error) {
+		console.error(error);
+		return false;
 	}
 
 	return await page.url() == "https://m.uber.com/looking";
@@ -237,13 +240,8 @@ const execute_in_page_past_auth = async (fnc, cookies, launchArgs = {}) => {
 	return result;
 }
 
-const login_with_totp = async (email, password, totp) => {
+const login_with_totp = async (credentials) => {
 	return await execute_in_page(async (page) => {
-		const credentials = {
-			emailAddress: email,
-			totp: totp,
-			password: password
-		};
 		return await auth(page, credentials);
 	}, '[]');
 }
