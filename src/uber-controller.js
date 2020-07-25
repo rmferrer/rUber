@@ -78,22 +78,6 @@ const login = async (page, credentials) => {
 	return await page.url() == "https://m.uber.com/looking";
 }
 
-const auth = async (page, credentials) => {
-	const uri = uri_utils.base_uri(await page.url());
-	if (uri == "https://auth.uber.com") {
-		console.error("[AUTH] Not logged in. Logging in.")
-		const loggedIn = await login(page, credentials);
-		console.log("[AUTH] Logged in succeeded: " + loggedIn)
-		return loggedIn ? JSON.stringify(await page.cookies()) : null;
-	} else if (uri == "https://m.uber.com") {
-		console.log("[AUTH] Logged in.");
-		return JSON.stringify(await page.cookies());
-	} else {
-		console.error("Unrecognized login URI: " + uri);
-		return null;
-	}
-};
-
 const enter_address = async (address, page) => {
 	await page.focus('input');
 	await page.keyboard.type(address);
@@ -242,7 +226,19 @@ const execute_in_page_past_auth = async (fnc, cookies, launchArgs = {}) => {
 
 const login_with_totp = async (credentials) => {
 	return await execute_in_page(async (page) => {
-		return await auth(page, credentials);
+		const uri = uri_utils.base_uri(await page.url());
+		if (uri == "https://auth.uber.com") {
+			console.error("[AUTH] Not logged in. Logging in.")
+			const loggedIn = await login(page, credentials);
+			console.log("[AUTH] Logged in succeeded: " + loggedIn)
+			return loggedIn ? JSON.stringify(await page.cookies()) : null;
+		} else if (uri == "https://m.uber.com") {
+			console.log("[AUTH] Logged in.");
+			return JSON.stringify(await page.cookies());
+		} else {
+			console.error("Unrecognized login URI: " + uri);
+			return null;
+		}
 	}, '[]');
 }
 
