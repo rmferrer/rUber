@@ -8,7 +8,7 @@
   },
   "main": "src/server.js",
   "scripts": {
-    "start": "source .env_export && node src/server.js",
+    "start": "node src/server.js",
     "start-docker": "docker-compose up",
     "start-dev": "source .env_export && nodemon src/server",
     "test": "mocha test",
