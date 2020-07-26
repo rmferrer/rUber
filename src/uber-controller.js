@@ -176,7 +176,7 @@ const _search_address = async (address, page) => {
 
 const _order_trip = async (travelChoice, paymentProfileChoice, page) => {
 	const TRAVEL_CHOICE_SELECTOR = _child_choice_selector(`div[data-test=tiers-container] > div[data-test=vehicle-view-container]`, travelChoice) + ` > div`;
-	const PAYMENT_PROFILE_MENU_SELECTOR = `div[data-test=request-trip-button-container] > div`;
+	const PAYMENT_PROFILE_MENU_SELECTOR = `div[data-test=request-trip-button-container] > div[data-test=payment-promo-container]`;
 	const PAYMENT_PROFILE_CHOICE_SELECTOR = _child_choice_selector(`div[data-test=list-container] > span > div`, paymentProfileChoice);
 	const REQUEST_BUTTON_SELECTOR = `div[data-test=request-trip-button-container] > button`;
 	const POOL_BACKGROUND_SELECTOR = `div[data-test=background]`;
