@@ -8,8 +8,9 @@
   },
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "start-dev": "nodemon src/server",
+    "start": "source .env_export && redis-server& && node src/server.js",
+    "start-docker": "docker-compose up",
+    "start-dev": "source .env_export && redis-server& && nodemon src/server",
     "test": "mocha test",
     "test-local": "source .env; mocha test"
   },
