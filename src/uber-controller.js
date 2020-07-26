@@ -5,7 +5,7 @@ const puppeteer = require("puppeteer");
 const uri_utils = require("./utils/uri");
 	
 const defaultLaunchArgs = {
-	headless: false,
+	headless: true,
 	args: ['--no-sandbox', '--disable-setuid-sandbox']
 }
 
@@ -265,8 +265,10 @@ const _search_payment_profiles = async (page) => {
 }
 
 const _execute_in_page = async (fnc, cookies, launchArgs = {}) => {
-	console.log('launching browser');
+	console.log(`\n\nLaunching browser...`);
 	const overriddenLaunchArgs = Object.assign({}, defaultLaunchArgs, launchArgs);
+
+	console.log(`Headless mode: ${overriddenLaunchArgs.headless}`);
 	const browser = await puppeteer.launch(overriddenLaunchArgs);
 	const page = await browser.newPage();
 	await page.setCookie(...JSON.parse(cookies));
