@@ -84,10 +84,6 @@ const _wait_for_selector_and_type = async (page,
 	console.log(`Done waiting.`);
 }
 
-const _click = (page, selector) => Promise.all([
-	  page.evaluate((selector) => document.querySelector(selector).click(), selector),
-]);
-
 const _click_and_wait_ms = async (page, selector, ms) => {
 	  await page.click(selector);
 	  await page.waitFor(ms);
@@ -212,7 +208,7 @@ const _order_trip = async (travelChoice, paymentProfileChoice, page) => {
 	console.log("isPool = " + isPool);
 	if (isPool) {
 		console.log("uber pool selection detected. asking for only 1 seat...")
-		await _click(page, POOL_BUTTON_SELECTOR);
+		await _wait_for_selector_and_click(page, POOL_BUTTON_SELECTOR);
 	}
 
 	// handle surge pricing
@@ -223,7 +219,7 @@ const _order_trip = async (travelChoice, paymentProfileChoice, page) => {
 	console.log("isSurge = " + isSurge);
 	if (isSurge) {
 		console.log("surge pricing detected. agreeing to higher fares.");
-		await _click(page, SURGE_BUTTON_SELECTOR);
+		await _wait_for_selector_and_click(page, SURGE_BUTTON_SELECTOR);
 	}
 
 	// wait for driver to be assigned
