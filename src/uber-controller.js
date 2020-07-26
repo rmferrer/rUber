@@ -201,7 +201,7 @@ const _order_trip = async (travelChoice, paymentProfileChoice, page) => {
 	await _wait_for_selector_and_click(page, TRAVEL_CHOICE_SELECTOR, {desc: "vehicle choice"});
 
 	// submit order
-	await _wait_for_selector_and_click(page, REQUEST_BUTTON_SELECTOR, {desc: "request button"});
+	await _wait_for_selector_and_click(page, REQUEST_BUTTON_SELECTOR, {desc: "request button", delay: 1000});
 
 	// handle uber pool selection
 	console.log("checking for pool");
@@ -227,7 +227,11 @@ const _order_trip = async (travelChoice, paymentProfileChoice, page) => {
 	}
 
 	// wait for driver to be assigned
-	await page.waitForFunction(() => !!document.querySelector("div[data-test=top-section-container]") && document.querySelector("div[data-test=top-section-container]").innerText.indexOf("Your driver") > -1);
+	await page.waitForFunction(() => {
+		const TOP_CONTAINER_SELECTOR = "div[data-test=top-section-container]";
+		return !!document.querySelector(TOP_CONTAINER_SELECTOR) &&
+			document.querySelector(TOP_CONTAINER_SELECTOR).innerText.indexOf("Your driver") > -1;
+	});
 
 	// read off ride details
 	const ride_details = await page.evaluate(() => {
