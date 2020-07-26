@@ -19,12 +19,23 @@ const _click_and_wait_idle = (page, selector) => Promise.all([
 	  page.waitForNavigation({ waitUntil: 'networkidle0' }),
 ]);
 
+const _wait_for_selector_and_click = async (page, selector, desc = "", delay = 1000, timeout = 10000) => {
+	console.log(`Waiting for selector (${desc}): ${selector}`);
+	await page.waitForSelector(selector, {timeout: timeout});
+	console.log(`Selector found in page`);
+	await page.click(selector);
+	console.log(`Clicked selector. Now waiting ${delay}ms`);
+	await page.waitFor(delay);
+	console.log(`Done waiting.`);
+}
+
 const _click = (page, selector) => Promise.all([
 	  page.evaluate((selector) => document.querySelector(selector).click(), selector),
 ]);
 
 const _click_and_wait_ms = async (page, selector, ms) => {
 	  await page.click(selector);
+	  await page.waitFor(ms);
 }
 
 const _click_and_wait_ms_deprecated = (page, selector, ms) => Promise.all([
@@ -118,23 +129,22 @@ const _search_address = async (address, page) => {
 	return results;
 }
 
-const _order_trip = async (travelChoice, paymentChoice, page) => {
-	// select ride option
-	await page.waitForSelector("div[data-test=tiers-container] > div[data-test=vehicle-view-container]");	
-	const travelChoiceSelector = _child_choice_selector("div[data-test=tiers-container] > div[data-test=vehicle-view-container]", travelChoice) + " > div";
-	await _click_and_wait_ms(page, travelChoiceSelector, 1000);
+const _order_trip = async (travelChoice, paymentProfileChoice, page) => {
+	const TRAVEL_CHOICE_SELECTOR = _child_choice_selector("div[data-test=tiers-container] > div[data-test=vehicle-view-container]", travelChoice) + " > div";
+	const PAYMENT_PROFILE_MENU_SELECTOR = "div[data-test=request-trip-button-container] > div";
+	const PAYMENT_PROFILE_CHOICE_SELECTOR = _child_choice_selector("div[data-test=list-container] > span > div", paymentProfileChoice);
+	const REQUEST_BUTTON_SELECTOR = "div[data-test=request-trip-button-container] > button";
 
-	// select payment method
-	await page.waitForSelector("div[data-test=request-trip-button-container] > div", {timeout: 10000});
-	await _click_and_wait_idle(page, "div[data-test=request-trip-button-container] > div");
-	await _click_and_wait_ms(page, "div[data-test=list-container] > span > div + div", 500);
-	const paymentChoiceSelector = _child_choice_selector("span > div[data-test=list-container] > div", paymentChoice);
-	await _click_and_wait_ms(page, paymentChoiceSelector, 1000);
-	
+	// select ride option
+	await _wait_for_selector_and_click(page, TRAVEL_CHOICE_SELECTOR, "vehicle choice");
+
+	// select payment profile
+	await _wait_for_selector_and_click(page, PAYMENT_PROFILE_MENU_SELECTOR, "profile menu");
+	await _wait_for_selector_and_click(page, PAYMENT_PROFILE_CHOICE_SELECTOR, "profile choice");
+
 	// submit order
-	await page.waitForSelector("div[data-test=request-trip-button-container] > button");
-	await _click_and_wait_ms(page, "div[data-test=request-trip-button-container] > button", 1000);
-	
+	await _wait_for_selector_and_click(page, REQUEST_BUTTON_SELECTOR, "request button");
+
 	// handle uber pool selection
 	console.log("checking for pool");
 	const isPool = await page.evaluate(() => !!document.querySelector("div[data-test=background]") && document.querySelector("div[data-test=background] + div + div > div > div > div").innerText.indexOf("How many seats do you need?") > -1);
@@ -270,11 +280,11 @@ const lookup_rates = async (src, dest, cookies) => {
 	}, cookies);
 }
 
-const book_trip = async (src, dest, travel_option, payment_option, cookies) => {
+const book_trip = async (src, dest, travel_option, payment_profile, cookies) => {
 	return await _execute_in_page_past_auth(async (page) => {
 		await _enter_and_click_address(src, page);
 		await _enter_and_click_address(dest, page);
-		return await _order_trip(travel_option, payment_option, page);
+		return await _order_trip(travel_option, payment_profile, page);
 	}, cookies);
 }
 
