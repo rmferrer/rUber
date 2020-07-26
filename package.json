@@ -12,7 +12,7 @@
     "start-docker": "docker-compose up",
     "start-dev": "source .env_export && nodemon src/server",
     "test": "mocha test",
-    "test-local": "source .env; mocha test"
+    "test-local": "source .env_export; mocha test"
   },
   "dependencies": {
     "bluebird": "^3.7.1",

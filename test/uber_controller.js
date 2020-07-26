@@ -102,8 +102,8 @@ describe("lookup_payment_profiles", () => {
 // describe("book_trip", () => {
 //   it("books a trip correctly (THIS BOOKS A REAL TRIP / DO NOT INCLUDE IN AUTOMATED TESTING)", async function () {
 //     this.timeout(TIMEOUT);
-//     const src = {address: "209 Edgewood Ave SE, Atlanta, GA 30303", option: 1};
-//     const dest = {address: "357 Edgewood Ave SE, Atlanta, GA 30312", option: 1};
+//     const src = {address: "3859 W Ogden Ave, Chicago, IL 60623", option: 1};
+//     const dest = {address: "3750 W Ogden Ave, Chicago, IL 60623", option: 1};
 //     const result = await uber_controller.book_trip(src, dest, 2, 1, cookies, launchArgs);
 //     console.log("result is: " + result);
 //     expect(result).to.have.lengthOf(2);
@@ -113,8 +113,8 @@ describe("lookup_payment_profiles", () => {
 // describe("cancel_trip", () => {
 //   it("cancels a trip correctly (THIS BOOKS A REAL TRIP / DO NOT INCLUDE IN AUTOMATED TESTING)", async function () {
 //     this.timeout(TIMEOUT);
-//     const src = {address: "209 Edgewood Ave SE, Atlanta, GA 30303", option: 1};
-//     const dest = {address: "357 Edgewood Ave SE, Atlanta, GA 30312", option: 1};
+//     const src = {address: "3859 W Ogden Ave, Chicago, IL 60623", option: 1};
+//     const dest = {address: "3750 W Ogden Ave, Chicago, IL 60623", option: 1};
 //     const result = await uber_controller.book_trip(src, dest, 1, 1, cookies, launchArgs);
 //     console.log(result);
 //     await uber_controller.cancel_trip(cookies, launchArgs);
