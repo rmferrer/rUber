@@ -179,16 +179,19 @@ const _order_trip = async (travelChoice, paymentProfileChoice, page) => {
 	const PAYMENT_PROFILE_MENU_SELECTOR = `div[data-test=request-trip-button-container] > div`;
 	const PAYMENT_PROFILE_CHOICE_SELECTOR = _child_choice_selector(`div[data-test=list-container] > span > div`, paymentProfileChoice);
 	const REQUEST_BUTTON_SELECTOR = `div[data-test=request-trip-button-container] > button`;
-
 	const POOL_BACKGROUND_SELECTOR = `div[data-test=background]`;
 	const POOL_TEXT_SELECTOR = `${POOL_BACKGROUND_SELECTOR} + div + div > div > div > div`;
 	const POOL_BUTTON_SELECTOR = `${POOL_BACKGROUND_SELECTOR} + div + div > div > div:nth-child(2)`;
-
 	const QUESTION_DESCRIPTION_SELECTOR = `div[data-test=question-description]`;
 	const SURGE_BUTTON_SELECTOR = `${QUESTION_DESCRIPTION_SELECTOR} + div > div + div > button`;
-
 	const DETAILS_CONTAINER = "div[data-test=bottom-section-container] > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1)";
+	const RIDE_DETAILS_SELECTOR = "div[data-test=bottom-section-container] > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1)";
+	const TOP_CONTAINER_SELECTOR = "div[data-test=top-section-container]";
+	const POOL_KEY_TEXT = "How many seats do you need?";
+	const DRIVER_ASSIGNED_KEY_TEXT = "Your driver";
+	const SURGE_KEY_TEXT = "Fares are slightly higher due to increased demand.";
 
+	console.log("RAFA WAITING");
 	// select payment profile
 	await _wait_for_selector_and_click(page, PAYMENT_PROFILE_MENU_SELECTOR, {desc: "profile menu", delay: 2000});
 	await _wait_for_selector_and_click(page, PAYMENT_PROFILE_CHOICE_SELECTOR, {desc: "profile choice"});
@@ -201,10 +204,10 @@ const _order_trip = async (travelChoice, paymentProfileChoice, page) => {
 
 	// handle uber pool selection
 	console.log("checking for pool");
-	const isPool = await page.evaluate(() => {
-		return !!document.querySelector(POOL_BACKGROUND_SELECTOR)
-			&& document.querySelector(POOL_TEXT_SELECTOR).innerText.indexOf("How many seats do you need?") > -1;
-	});
+	const isPool = await page.evaluate((background_selector, text_selector, keyText) => {
+		return !!document.querySelector(background_selector)
+			&& document.querySelector(text_selector).innerText.indexOf(keyText) > -1;
+	}, POOL_BACKGROUND_SELECTOR, POOL_TEXT_SELECTOR, POOL_KEY_TEXT);
 	console.log("isPool = " + isPool);
 	if (isPool) {
 		console.log("uber pool selection detected. asking for only 1 seat...")
@@ -213,9 +216,10 @@ const _order_trip = async (travelChoice, paymentProfileChoice, page) => {
 
 	// handle surge pricing
 	console.log("checking for surge");
-	const isSurge = await page.evaluate(() => {
-		return !!document.querySelector(QUESTION_DESCRIPTION_SELECTOR) && document.querySelector(QUESTION_DESCRIPTION_SELECTOR).previousSibling.innerText.indexOf("Fares are slightly higher due to increased demand.") > -1;
-	});
+	const isSurge = await page.evaluate((question_description_selector, keyText) => {
+		return !!document.querySelector(question_description_selector) &&
+			document.querySelector(question_description_selector).previousSibling.innerText.indexOf(keyText) > -1;
+	}, QUESTION_DESCRIPTION_SELECTOR, SURGE_KEY_TEXT);
 	console.log("isSurge = " + isSurge);
 	if (isSurge) {
 		console.log("surge pricing detected. agreeing to higher fares.");
@@ -223,17 +227,15 @@ const _order_trip = async (travelChoice, paymentProfileChoice, page) => {
 	}
 
 	// wait for driver to be assigned
-	await page.waitForFunction(() => {
-		const TOP_CONTAINER_SELECTOR = "div[data-test=top-section-container]";
-		return !!document.querySelector(TOP_CONTAINER_SELECTOR) &&
-			document.querySelector(TOP_CONTAINER_SELECTOR).innerText.indexOf("Your driver") > -1;
-	});
+	await page.waitForFunction((top_container_selector, keyText) => {
+		return !!document.querySelector(top_container_selector) &&
+			document.querySelector(top_container_selector).innerText.indexOf(keyText) > -1;
+	}, TOP_CONTAINER_SELECTOR, DRIVER_ASSIGNED_KEY_TEXT);
 
 	// read off ride details
-	const ride_details = await page.evaluate(() => {
-		const RIDE_DETAILS_SELECTOR = "div[data-test=bottom-section-container] > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1)";
-		return document.querySelector(RIDE_DETAILS_SELECTOR).innerText;
-	});
+	const ride_details = await page.evaluate((ride_details_selector) => {
+		return document.querySelector(ride_details_selector).innerText;
+	}, RIDE_DETAILS_SELECTOR);
 	await _wait_for_selector_and_click(page, DETAILS_CONTAINER, {desc: 'phone_details_container'});
 	const phone_details = await page.evaluate(() => document.querySelector("div[data-test=x-mark] + div").firstChild.childNodes[1].innerText);
 	const phone_number = "+" + phone_details.split("+")[1];
@@ -275,7 +277,7 @@ const _search_payment_profiles = async (page) => {
 
 const _execute_in_page = async (fnc, cookies, launchArgs = {}) => {
 	console.log(`\n\nLaunching browser...`);
-	const overriddenLaunchArgs = Object.assign({}, defaultLaunchArgs, launchArgs);
+	const overriddenLaunchArgs = Object.assign({}, defaultLaunchArgs, {});
 
 	console.log(`Headless mode: ${overriddenLaunchArgs.headless}`);
 	const browser = await puppeteer.launch(overriddenLaunchArgs);
