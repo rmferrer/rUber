@@ -222,6 +222,7 @@ const _order_trip = async (travelChoice, paymentProfileChoice, page) => {
 	console.log("isSurge = " + isSurge);
 	if (isSurge) {
 		console.log("surge pricing detected. agreeing to higher fares.");
+		await _wait_for_selector_and_click(page, SURGE_BUTTON_SELECTOR, {desc: "surge_button"});
 	}
 
 	// wait for driver to be assigned
