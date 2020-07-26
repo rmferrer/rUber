@@ -256,10 +256,7 @@ const _inputRouter = async (input, sessionKey, redis) => {
       return await _loginHandler(sessionKey, redis);  
     }
     if (sessionStatus === models.statusCodes.totp) {
-      const countryCode = process.env.UBER_COUNTRY_CODE;
-      const phoneNumber = process.env.UBER_PHONE_NUMBER;
-      const password = process.env.UBER_PASSWORD;
-      credentials = {
+      const credentials = {
         countryCode: process.env.UBER_COUNTRY_CODE,
         phoneNumber: process.env.UBER_PHONE_NUMBER,
         password: process.env.UBER_PASSWORD,
