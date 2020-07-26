@@ -258,7 +258,7 @@ const _search_payment_profiles = async (page) => {
 
 const _execute_in_page = async (fnc, cookies, launchArgs = {}) => {
 	console.log(`\n\nLaunching browser...`);
-	const overriddenLaunchArgs = Object.assign({}, defaultLaunchArgs, {});
+	const overriddenLaunchArgs = Object.assign({}, defaultLaunchArgs, launchArgs);
 
 	console.log(`Headless mode: ${overriddenLaunchArgs.headless}`);
 	const browser = await puppeteer.launch(overriddenLaunchArgs);
