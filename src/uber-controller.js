@@ -15,6 +15,7 @@ const _child_choice_selector = (parentSelector, choiceIdx) => {
 	return parentSelector +":nth-child(" + choiceIdx + ")";
 }
 
+// TODO(rmferrer): make sure this works on heroku
 const _screenshot = async (page, filename) => {
 	if (process.env.SCREENSHOT) {
 		const tmp_dir = `/tmp/ruber`;
