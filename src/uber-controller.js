@@ -289,7 +289,7 @@ const _execute_in_page = async (fnc, cookies, launchArgs = {}) => {
 }
 
 const _execute_in_page_past_auth = async (fnc, cookies, launchArgs = {}) => {
-	const result = await _execute_in_page(async (page) => {
+	return await _execute_in_page(async (page) => {
 		const uri = uri_utils.base_uri(await page.url());
 
 		if (uri !== "https://m.uber.com") {
@@ -306,7 +306,6 @@ const _execute_in_page_past_auth = async (fnc, cookies, launchArgs = {}) => {
 		}
 		return result;
 	}, cookies, launchArgs);
-	return result;
 }
 
 const login_with_totp = async (credentials, launchArgs) => {
