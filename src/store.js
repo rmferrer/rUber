@@ -136,19 +136,22 @@ const resolve_address = async(key, address, redis) => {
 	return resolvedAddress;
 }
 
-exports.get_session_status = get_session_status;
 exports.set_session_status = set_session_status;
 exports.set_session_source_address = set_session_source_address;
 exports.set_session_source_option = set_session_source_option;
 exports.set_session_dest_address = set_session_dest_address;
 exports.set_session_dest_option = set_session_dest_option;
 exports.set_session_travel_option = set_session_travel_option;
+
+exports.get_session_status = get_session_status;
 exports.get_session_source_address = get_session_source_address;
 exports.get_session_source_option = get_session_source_option;
 exports.get_session_dest_address = get_session_dest_address;
 exports.get_session_dest_option = get_session_dest_option;
 exports.get_session_travel_option = get_session_travel_option;
+
 exports.get_session = get_session;
+
 exports.nuke_session = nuke_session;
 exports.logout_session = logout_session;
 exports.get_session_cookies = get_session_cookies;

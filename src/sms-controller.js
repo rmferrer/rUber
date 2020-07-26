@@ -162,6 +162,11 @@ const _nukeHandler = async (sessionKey, redis) => {
   return ["Nuked session! Booom shakalaka"];
 }
 
+const _statusHandler = async (sessionKey, redis) => {
+  const status = await store.get_session_status(sessionKey, redis);
+  return [`Status: ${status}`];
+}
+
 const _mainMenuSpecialCommandHandler = async (sessionKey, redis) => {
   await store.set_session_status(sessionKey, models.statusCodes.mainMenu, redis);
   return ["Main menu:\nride/r\nsettings/s"];
@@ -283,6 +288,9 @@ const _inputRouter = async (input, sessionKey, redis) => {
   }
   if (input === "nuke") {
     return await _nukeHandler(sessionKey, redis, launchArgs);
+  }
+  if (input === "check-status") {
+    return await _statusHandler(sessionKey, redis, launchArgs);
   }
 
   switch(sessionStatus) {
