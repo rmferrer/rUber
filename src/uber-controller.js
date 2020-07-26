@@ -179,10 +179,19 @@ const _search_address = async (address, page) => {
 }
 
 const _order_trip = async (travelChoice, paymentProfileChoice, page) => {
-	const TRAVEL_CHOICE_SELECTOR = _child_choice_selector("div[data-test=tiers-container] > div[data-test=vehicle-view-container]", travelChoice) + " > div";
-	const PAYMENT_PROFILE_MENU_SELECTOR = "div[data-test=request-trip-button-container] > div";
-	const PAYMENT_PROFILE_CHOICE_SELECTOR = _child_choice_selector("div[data-test=list-container] > span > div", paymentProfileChoice);
-	const REQUEST_BUTTON_SELECTOR = "div[data-test=request-trip-button-container] > button";
+	const TRAVEL_CHOICE_SELECTOR = _child_choice_selector(`div[data-test=tiers-container] > div[data-test=vehicle-view-container]`, travelChoice) + ` > div`;
+	const PAYMENT_PROFILE_MENU_SELECTOR = `div[data-test=request-trip-button-container] > div`;
+	const PAYMENT_PROFILE_CHOICE_SELECTOR = _child_choice_selector("div[data-test=list-container] > span > div`, paymentProfileChoice);
+	const REQUEST_BUTTON_SELECTOR = `div[data-test=request-trip-button-container] > button`;
+
+	const POOL_BACKGROUND_SELECTOR = `div[data-test=background]`;
+	const POOL_TEXT_SELECTOR = `${POOL_BACKGROUND_SELECTOR} + div + div > div > div > div`;
+	const POOL_BUTTON_SELECTOR = `${POOL_BACKGROUND_SELECTOR} + div + div > div > div:nth-child(2)`;
+
+	const QUESTION_DESCRIPTION_SELECTOR = `div[data-test=question-description]`;
+	const SURGE_BUTTON_SELECTOR = `${QUESTION_DESCRIPTION_SELECTOR} + div > div + div > button`;
+
+	const DETAILS_CONTAINER = "div[data-test=bottom-section-container] > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1)";
 
 	// select ride option
 	await _wait_for_selector_and_click(page, TRAVEL_CHOICE_SELECTOR, {desc: "vehicle choice"});
@@ -196,25 +205,36 @@ const _order_trip = async (travelChoice, paymentProfileChoice, page) => {
 
 	// handle uber pool selection
 	console.log("checking for pool");
-	const isPool = await page.evaluate(() => !!document.querySelector("div[data-test=background]") && document.querySelector("div[data-test=background] + div + div > div > div > div").innerText.indexOf("How many seats do you need?") > -1);
+	const isPool = await page.evaluate(() => {
+		return !!document.querySelector(POOL_BACKGROUND_SELECTOR)
+			&& document.querySelector(POOL_TEXT_SELECTOR).innerText.indexOf("How many seats do you need?") > -1;
+	});
 	console.log("isPool = " + isPool);
 	if (isPool) {
 		console.log("uber pool selection detected. asking for only 1 seat...")
-		await _click(page, "div[data-test=background] + div + div > div > div:nth-child(2)");			
+		await _click(page, POOL_BUTTON_SELECTOR);
 	}
 
 	// handle surge pricing
 	console.log("checking for surge");
-	const isSurge = await page.evaluate(() => !!document.querySelector("div[data-test=question-description]") && document.querySelector("div[data-test=question-description]").previousSibling.innerText.indexOf("Fares are slightly higher due to increased demand.") > -1);
+	const isSurge = await page.evaluate(() => {
+		return !!document.querySelector(QUESTION_DESCRIPTION_SELECTOR) && document.querySelector(QUESTION_DESCRIPTION_SELECTOR).previousSibling.innerText.indexOf("Fares are slightly higher due to increased demand.") > -1;
+	});
 	console.log("isSurge = " + isSurge);
 	if (isSurge) {
 		console.log("surge pricing detected. agreeing to higher fares.");
-		await _click(page, "div[data-test=question-description] + div > div + div > button");
+		await _click(page, SURGE_BUTTON_SELECTOR);
 	}
 
+	// wait for driver to be assigned
 	await page.waitForFunction(() => !!document.querySelector("div[data-test=top-section-container]") && document.querySelector("div[data-test=top-section-container]").innerText.indexOf("Your driver") > -1);
-	const ride_details = await page.evaluate(() => document.querySelector("div[data-test=bottom-section-container] > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1)").innerText);
-	await _click(page, "div[data-test=bottom-section-container] > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1)");
+
+	// read off ride details
+	const ride_details = await page.evaluate(() => {
+		const RIDE_DETAILS_SELECTOR = "div[data-test=bottom-section-container] > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1)";
+		return document.querySelector(RIDE_DETAILS_SELECTOR).innerText;
+	});
+	await _wait_for_selector_and_click(page, DETAILS_CONTAINER, {desc: 'phone_details_container'});
 	const phone_details = await page.evaluate(() => document.querySelector("div[data-test=x-mark] + div").firstChild.childNodes[1].innerText);
 	const phone_number = "+" + phone_details.split("+")[1];
 	return [ride_details, phone_number];
