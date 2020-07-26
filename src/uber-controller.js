@@ -4,7 +4,7 @@ const puppeteer = require("puppeteer");
 const fs = require('fs');
 
 const uri_utils = require("./utils/uri");
-	
+
 const defaultLaunchArgs = {
 	headless: false,
 	args: ['--no-sandbox', '--disable-setuid-sandbox']
