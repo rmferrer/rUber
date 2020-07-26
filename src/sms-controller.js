@@ -9,7 +9,7 @@ const _loginHandler = async (sessionKey, redis) => {
 }
 
 const _totpHandler = async (credentials, sessionKey, redis, launchArgs) => {
-  const cookies = await uberController.login_with_totp(credentials);
+  const cookies = await uberController.login_with_totp(credentials, launchArgs);
   
   if (cookies) {
     await store.set_session_cookies(sessionKey, cookies, redis);
@@ -24,7 +24,7 @@ const _newRideHandler = async (sessionKey, redis) => {
   return ["Where from?"];
 }
 
-const _inputSourceHandler = async (input, sessionKey, redis, cookies) => {
+const _inputSourceHandler = async (input, sessionKey, redis, cookies, launchArgs) => {
   const resolvedAddress = await store.resolve_address(sessionKey, input, redis);
   if (resolvedAddress) {
     await store.set_session_status(sessionKey, models.statusCodes.inputDest, redis);
@@ -32,8 +32,8 @@ const _inputSourceHandler = async (input, sessionKey, redis, cookies) => {
     await store.set_session_source_option(sessionKey, resolvedAddress[1], redis);
     return ["Where to?"];
   }
-  const addresses = await uberController.lookup_address(input, cookies);
-  response = ["0. Reenter address."].concat(addresses).concat(["Which option?"]).join('\n\n');
+  const addresses = await uberController.lookup_address(input, cookies, launchArgs);
+  const response = ["0. Reenter address."].concat(addresses).concat(["Which option?"]).join('\n\n');
   await store.set_session_status(sessionKey, models.statusCodes.chooseSource, redis);
   await store.set_session_source_address(sessionKey, input, redis);
   return [response];
@@ -53,7 +53,7 @@ const _chooseSourceHandler = async (input, sessionKey, redis) => {
   return ["Where to?"];
 }
 
-const _inputDestHandler = async (input, sessionKey, redis, cookies) => {
+const _inputDestHandler = async (input, sessionKey, redis, cookies, launchArgs) => {
   const resolvedAddress = await store.resolve_address(sessionKey, input, redis);
   if (resolvedAddress) {
     await store.set_session_status(sessionKey, models.statusCodes.chooseTravelOption, redis);
@@ -70,17 +70,17 @@ const _inputDestHandler = async (input, sessionKey, redis, cookies) => {
       address: resolvedAddress[0],
       option: resolvedAddress[1]
     }
-    const rates = await uberController.lookup_rates(src, dst, cookies);
+    const rates = await uberController.lookup_rates(src, dst, cookies, launchArgs);
     return [rates.concat(["Which option?"]).join('\n\n')];
   }
-  const addresses = await uberController.lookup_address(input, cookies);
+  const addresses = await uberController.lookup_address(input, cookies, launchArgs);
   response = ["0. Reenter address."].concat(addresses).concat(["Which option?"]).join('\n\n');
   await store.set_session_status(sessionKey, models.statusCodes.chooseDest, redis);
   await store.set_session_dest_address(sessionKey, input, redis);
   return [response];
 }
 
-const _chooseDestHandler = async (input, sessionKey, redis, cookies) => {
+const _chooseDestHandler = async (input, sessionKey, redis, cookies, launchArgs) => {
   const choice = Number(input);
   
   if (choice === 0) {
@@ -103,11 +103,11 @@ const _chooseDestHandler = async (input, sessionKey, redis, cookies) => {
     address: destAddress,
     option: destOption
   }
-  const rates = await uberController.lookup_rates(src, dst, cookies);
+  const rates = await uberController.lookup_rates(src, dst, cookies, launchArgs);
   return [rates.concat(["Which option?"]).join('\n\n')];
 }
 
-const _chooseTravelOptionHandler = async (input, sessionKey, redis, cookies) => {
+const _chooseTravelOptionHandler = async (input, sessionKey, redis, cookies, launchArgs) => {
   const choice = Number(input);
   
   await store.set_session_travel_option(sessionKey, choice, redis);
@@ -125,11 +125,11 @@ const _chooseTravelOptionHandler = async (input, sessionKey, redis, cookies) => 
     address: destAddress,
     option: destOption
   }
-  const paymentProfiles = await uberController.lookup_payment_profiles(src, dst, cookies);
+  const paymentProfiles = await uberController.lookup_payment_profiles(src, dst, cookies, launchArgs);
   return [paymentProfiles.concat(["Which payment profile?"]).join('\n\n')];
 }
 
-const _choosePaymentProfileHandler = async (input, sessionKey, redis, cookies) => {
+const _choosePaymentProfileHandler = async (input, sessionKey, redis, cookies, launchArgs) => {
   const paymentProfileChoice = Number(input);
   
   const srcAddress = await store.get_session_source_address(sessionKey, redis);
@@ -145,7 +145,7 @@ const _choosePaymentProfileHandler = async (input, sessionKey, redis, cookies) =
     option: destOption
   }  
   const travelChoice = await store.get_session_travel_option(sessionKey, redis);
-  const tripDetails = await uberController.book_trip(src, dst, travelChoice, paymentProfileChoice, cookies);
+  const tripDetails = await uberController.book_trip(src, dst, travelChoice, paymentProfileChoice, cookies, launchArgs);
 
   await store.set_session_status(sessionKey, models.statusCodes.rideInProgress, redis);
 
@@ -202,18 +202,18 @@ const _saveNameHandler = async (input, sessionKey, redis) => {
   return ["enter address: "];
 }
 
-const _saveAddressHandler = async (input, sessionKey, redis, cookies) => {
-  const addresses = await uberController.lookup_address(input, cookies);
+const _saveAddressHandler = async (input, sessionKey, redis, cookies, launchArgs) => {
+  const addresses = await uberController.lookup_address(input, cookies, launchArgs);
   response = ["0. Reenter address."].concat(addresses).concat(["Which option?"]).join('\n\n');
   await store.save_temp_address_address(input, sessionKey, redis);
   await store.set_session_status(sessionKey, models.statusCodes.saveAddressOption, redis);
   return [response];
 }
 
-const _rideInProgressOptionHandler = async (input, sessionKey, redis, cookies) => {
+const _rideInProgressOptionHandler = async (input, sessionKey, redis, cookies, launchArgs) => {
   switch (input) {
     case "cancel":
-      const success = await uberController.cancel_trip(cookies);
+      const success = await uberController.cancel_trip(cookies, launchArgs);
       if (success) {
         await store.set_session_status(sessionKey, models.statusCodes.mainMenu, redis);
         return ["trip cancelled!"]; 

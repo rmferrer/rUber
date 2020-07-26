@@ -290,7 +290,7 @@ const _execute_in_page_past_auth = async (fnc, cookies, launchArgs = {}) => {
 	const result = await _execute_in_page(async (page) => {
 		const uri = uri_utils.base_uri(await page.url());
 
-		if (uri != "https://m.uber.com") {
+		if (uri !== "https://m.uber.com") {
 			console.error("Unrecognized login URI: " + uri);
 			console.error("Auth failed. Exiting...");
 			return "Error: uber auth failed.";
