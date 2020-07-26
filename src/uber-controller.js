@@ -48,7 +48,36 @@ const _wait_for_selector_and_click = async (page,
 	await _screenshot(page, `click_after_second_wait_${desc}_${Date.now()}`);
 	console.log(`Done waiting.`);
 }
+
+const _wait_for_function_and_perform_func = async (page,
+												   wait_func,
+												   wait_func_params,
+												   exec_func = null,
+												   exec_func_params = null,
+ 												   {
+												 	   desc = "",
+													   delay = 1000,
+													   timeout = 20000
+												   } =
+												 	   {
+													 	   desc: "",
+														   delay: 1000,
+														   timeout: 20000
+													   }) => {
+	console.log(`Waiting for function (${desc})`);
+	await _screenshot(page, `before_wait_for_wait_func_${desc}_${Date.now()}`);
+	await page.waitForFunction(wait_func, {timeout: timeout}, ...wait_func_params);
+	await _screenshot(page, `after_wait_for_wait_func_${desc}_${Date.now()}`);
+	if (!exec_func) {
+		console.log("No exec function...returning.");
+		return null;
+	}
+	const retVal = await page.evaluate(exec_func, ...exec_func_params);
+	await _screenshot(page, `after_evaluate_exec_func_${desc}_${Date.now()}`);
+	await page.waitFor(delay);
+	await _screenshot(page, `after_wait_for_second_wait_for_wait_func_${desc}_${Date.now()}`);
 	console.log(`Done waiting.`);
+	return retVal;
 }
 
 const _wait_for_selector_and_select = async (page,
@@ -250,16 +279,20 @@ const _order_trip = async (travelChoice, paymentProfileChoice, page) => {
 		await _wait_for_selector_and_click(page, SURGE_BUTTON_SELECTOR, {desc: "surge_button"});
 	}
 
-	// wait for driver to be assigned
-	await page.waitForFunction((top_container_selector, keyText) => {
+	// wait for driver to be assigned and read off ride details
+	const ride_details = await _wait_for_function_and_perform_func(page,
+		(top_container_selector, keyText) => {
 		return !!document.querySelector(top_container_selector) &&
 			document.querySelector(top_container_selector).innerText.indexOf(keyText) > -1;
-	}, TOP_CONTAINER_SELECTOR, DRIVER_ASSIGNED_KEY_TEXT);
+		},
+		[TOP_CONTAINER_SELECTOR, DRIVER_ASSIGNED_KEY_TEXT],
+		(ride_details_selector) => {
+			return document.querySelector(ride_details_selector).innerText;
+		},
+		[RIDE_DETAILS_SELECTOR],
+		{desc: "driver_assigned_details"}
+		);
 
-	// read off ride details
-	const ride_details = await page.evaluate((ride_details_selector) => {
-		return document.querySelector(ride_details_selector).innerText;
-	}, RIDE_DETAILS_SELECTOR);
 	await _wait_for_selector_and_click(page, DETAILS_CONTAINER, {desc: 'phone_details_container'});
 	const phone_details = await page.evaluate(() => document.querySelector("div[data-test=x-mark] + div").firstChild.childNodes[1].innerText);
 	const phone_number = "+" + phone_details.split("+")[1];
