@@ -191,7 +191,6 @@ const _order_trip = async (travelChoice, paymentProfileChoice, page) => {
 	const DRIVER_ASSIGNED_KEY_TEXT = "Your driver";
 	const SURGE_KEY_TEXT = "Fares are slightly higher due to increased demand.";
 
-	console.log("RAFA WAITING");
 	// select payment profile
 	await _wait_for_selector_and_click(page, PAYMENT_PROFILE_MENU_SELECTOR, {desc: "profile menu", delay: 2000});
 	await _wait_for_selector_and_click(page, PAYMENT_PROFILE_CHOICE_SELECTOR, {desc: "profile choice"});
@@ -277,7 +276,7 @@ const _search_payment_profiles = async (page) => {
 
 const _execute_in_page = async (fnc, cookies, launchArgs = {}) => {
 	console.log(`\n\nLaunching browser...`);
-	const overriddenLaunchArgs = Object.assign({}, defaultLaunchArgs, {});
+	const overriddenLaunchArgs = Object.assign({}, defaultLaunchArgs, launchArgs);
 
 	console.log(`Headless mode: ${overriddenLaunchArgs.headless}`);
 	const browser = await puppeteer.launch(overriddenLaunchArgs);
