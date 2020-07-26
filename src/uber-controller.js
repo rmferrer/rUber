@@ -18,12 +18,12 @@ const _wait_for_selector_and_click = async (page,
 											{
 												desc = "",
 												delay = 1000,
-												timeout = 10000
+												timeout = 20000
 											} =
 												{
 													desc: "",
 													delay: 1000,
-													timeout: 10000
+													timeout: 20000
 												}) => {
 	console.log(`Waiting for selector (${desc}): ${selector}`);
 	await page.waitForSelector(selector, {timeout: timeout});
@@ -40,13 +40,13 @@ const _wait_for_selector_and_select = async (page,
 											 {
 												 desc = "",
 												 delay = 1000,
-												 timeout = 10000,
+												 timeout = 20000,
 												 hideValue = false,
 											 } =
 												 {
 													 desc: "",
 													 delay: 1000,
-													 timeout: 10000,
+													 timeout: 20000,
 													 hideValue: false,
 												 }) => {
 	console.log(`Waiting for selector (${desc}): ${selector}`);
