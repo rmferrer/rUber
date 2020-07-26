@@ -1,6 +1,7 @@
 'use strict';
 
 const puppeteer = require("puppeteer");
+const fs = require('fs');
 
 const uri_utils = require("./utils/uri");
 	
@@ -11,6 +12,16 @@ const defaultLaunchArgs = {
 
 const _child_choice_selector = (parentSelector, choiceIdx) => {
 	return parentSelector +":nth-child(" + choiceIdx + ")";
+}
+
+const _screenshot = async (page, filename) => {
+	if (process.env.SCREENSHOT) {
+		const tmp_dir = `/tmp/ruber`;
+		if (!fs.existsSync(tmp_dir)) {
+			fs.mkdirSync(tmp_dir);
+		}
+		await page.screenshot({path: `${tmp_dir}/${filename}.png`});
+	}
 }
 
 const _wait_for_selector_and_click = async (page,
@@ -26,11 +37,17 @@ const _wait_for_selector_and_click = async (page,
 													timeout: 20000
 												}) => {
 	console.log(`Waiting for selector (${desc}): ${selector}`);
+	await _screenshot(page, `click_before_wait_${desc}_${Date.now()}`);
 	await page.waitForSelector(selector, {timeout: timeout});
+	await _screenshot(page, `click_after_wait_${desc}_${Date.now()}`);
 	console.log(`Selector found in page`);
 	await page.click(selector);
+	await _screenshot(page, `click_after_click_${desc}_${Date.now()}`);
 	console.log(`Clicked selector. Now waiting ${delay}ms`);
 	await page.waitFor(delay);
+	await _screenshot(page, `click_after_second_wait_${desc}_${Date.now()}`);
+	console.log(`Done waiting.`);
+}
 	console.log(`Done waiting.`);
 }
 
@@ -50,12 +67,16 @@ const _wait_for_selector_and_select = async (page,
 													 hideValue: false,
 												 }) => {
 	console.log(`Waiting for selector (${desc}): ${selector}`);
+	await _screenshot(page, `select_before_wait_${desc}_${Date.now()}`);
 	await page.waitForSelector(selector, {timeout: timeout});
 	console.log(`Selector found in page`);
+	await _screenshot(page, `select_after_wait_${desc}_${Date.now()}`);
 	await page.select(selector, value);
 	const redactedValue = hideValue ? "*******" : value;
 	console.log(`Selected ${redactedValue} from dropdown. Now waiting ${delay}ms`);
+	await _screenshot(page, `select_after_select_${desc}_${Date.now()}`);
 	await page.waitFor(delay);
+	await _screenshot(page, `select_after_second_wait_${desc}_${Date.now()}`);
 	console.log(`Done waiting.`);
 }
 
@@ -75,12 +96,16 @@ const _wait_for_selector_and_type = async (page,
 												   hideValue: false,
 											   }) => {
 	console.log(`Waiting for selector (${desc}): ${selector}`);
+	await _screenshot(page, `type_before_wait_${desc}_${Date.now()}`);
 	await page.waitForSelector(selector, {timeout: timeout});
 	console.log(`Selector found in page`);
+	await _screenshot(page, `type_after_wait_${desc}_${Date.now()}`);
 	await page.type(selector, value);
 	const redactedValue = hideValue ? "*******" : value;
+	await _screenshot(page, `type_after_type_${desc}_${Date.now()}`);
 	console.log(`Typed ${redactedValue} into field. Now waiting ${delay}ms`);
 	await page.waitFor(delay);
+	await _screenshot(page, `type_after_second_wait_${desc}_${Date.now()}`);
 	console.log(`Done waiting.`);
 }
 
