@@ -190,7 +190,7 @@ const _order_trip = async (travelChoice, paymentProfileChoice, page) => {
 	await _wait_for_selector_and_click(page, TRAVEL_CHOICE_SELECTOR, {desc: "vehicle choice"});
 
 	// select payment profile
-	await _wait_for_selector_and_click(page, PAYMENT_PROFILE_MENU_SELECTOR, {desc: "profile menu"});
+	await _wait_for_selector_and_click(page, PAYMENT_PROFILE_MENU_SELECTOR, {desc: "profile menu", delay: 2000});
 	await _wait_for_selector_and_click(page, PAYMENT_PROFILE_CHOICE_SELECTOR, {desc: "profile choice"});
 
 	// submit order

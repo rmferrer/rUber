@@ -85,6 +85,7 @@ const nuke_session = async(key, redis) => {
 }
 
 const logout_session = async(key, redis) => {
+	await redis.hdelAsync(key, redisKeys.cookies);
 	await redis.hmsetAsync(key, redisKeys.status, models.statusCodes.loggedOut);
 }
 
