@@ -159,7 +159,6 @@ const _enter_address = async (address, page) => {
 const _click_address_option = async (option, page) => {
 	const choiceSelector = _child_choice_selector("div[data-test=list-container] > div", option);
 	await _wait_for_selector_and_click(page, choiceSelector, {desc: 'address choice'});
-	await page.waitForNavigation({ waitUntil: 'networkidle0' });
 }
 
 const _enter_and_click_address = async (address, page) => {
