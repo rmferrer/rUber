@@ -19,12 +19,73 @@ const _click_and_wait_idle = (page, selector) => Promise.all([
 	  page.waitForNavigation({ waitUntil: 'networkidle0' }),
 ]);
 
-const _wait_for_selector_and_click = async (page, selector, desc = "", delay = 1000, timeout = 10000) => {
+const _wait_for_selector_and_click = async (page,
+											selector,
+											{
+												desc = "",
+												delay = 1000,
+												timeout = 10000
+											} =
+												{
+													desc: "",
+													delay: 1000,
+													timeout: 10000
+												}) => {
 	console.log(`Waiting for selector (${desc}): ${selector}`);
 	await page.waitForSelector(selector, {timeout: timeout});
 	console.log(`Selector found in page`);
 	await page.click(selector);
 	console.log(`Clicked selector. Now waiting ${delay}ms`);
+	await page.waitFor(delay);
+	console.log(`Done waiting.`);
+}
+
+const _wait_for_selector_and_select = async (page,
+											 selector,
+											 value,
+											 {
+												 desc = "",
+												 delay = 1000,
+												 timeout = 10000,
+												 hideValue = false,
+											 } =
+												 {
+													 desc: "",
+													 delay: 1000,
+													 timeout: 10000,
+													 hideValue: false,
+												 }) => {
+	console.log(`Waiting for selector (${desc}): ${selector}`);
+	await page.waitForSelector(selector, {timeout: timeout});
+	console.log(`Selector found in page`);
+	await page.select(selector, value);
+	const redactedValue = hideValue ? "*******" : value;
+	console.log(`Selected ${redactedValue} from dropdown. Now waiting ${delay}ms`);
+	await page.waitFor(delay);
+	console.log(`Done waiting.`);
+}
+
+const _wait_for_selector_and_type = async (page,
+										   selector,
+										   value,
+										   {
+											   desc = "",
+											   delay = 1000,
+											   timeout = 10000,
+											   hideValue = false,
+										   } =
+											   {
+												   desc: "",
+												   delay: 1000,
+												   timeout: 10000,
+												   hideValue: false,
+											   }) => {
+	console.log(`Waiting for selector (${desc}): ${selector}`);
+	await page.waitForSelector(selector, {timeout: timeout});
+	console.log(`Selector found in page`);
+	await page.type(selector, value);
+	const redactedValue = hideValue ? "*******" : value;
+	console.log(`Typed ${redactedValue} into field. Now waiting ${delay}ms`);
 	await page.waitFor(delay);
 	console.log(`Done waiting.`);
 }
@@ -58,10 +119,9 @@ const _login = async (page, credentials) => {
 
 	console.log("[LOGIN] Entering phone number.");
 	try {
-		// await page.focus("select[name=countryCode]");
-		await page.select(COUNTRY_CODE_SELECTOR, credentials.countryCode);
-		await page.type(PHONE_NUMBER_SELECTOR, credentials.phoneNumber);
-		await _click_and_wait_ms(page, NEXT_BUTTON_SELECTOR, 5000);
+		await _wait_for_selector_and_select(page, COUNTRY_CODE_SELECTOR, credentials.countryCode, {desc: "countryCode"});
+		await _wait_for_selector_and_type(page, PHONE_NUMBER_SELECTOR, credentials.phoneNumber, {desc: "phoneNumber"});
+		await _wait_for_selector_and_click(page, NEXT_BUTTON_SELECTOR, {desc: "next button", delay: 5000});
 		const hasCaptcha = await page.evaluate(() => !!document.getElementById("recaptcha-accessible-status"));
 		if (hasCaptcha) {
 			console.log("detected captcha on login... waiting 1min for user to sort it out...");
@@ -73,11 +133,11 @@ const _login = async (page, credentials) => {
 	}
 
 	try {
-		await page.$();
+		await page.$(TOTP_SELECTOR);
 		console.log("[LOGIN] Entering TOTP.");
 		try {
-			await page.type(TOTP_SELECTOR, credentials.totp);
-			await _click_and_wait_idle(page, NEXT_BUTTON_SELECTOR);
+			await _wait_for_selector_and_type(page, TOTP_SELECTOR, credentials.totp, {desc: "totp"});
+			await _wait_for_selector_and_click(page, NEXT_BUTTON_SELECTOR, {desc: "next button"});
 		} catch (error) {
 			console.error(error);
 			return false;
@@ -88,9 +148,8 @@ const _login = async (page, credentials) => {
 
 	console.log("[LOGIN] Entering password.");
 	try {
-		await page.focus(PASSWORD_SELECTOR);
-		await page.keyboard.type(credentials.password);
-		await _click_and_wait_ms(page, NEXT_BUTTON_SELECTOR, 5000);
+		await _wait_for_selector_and_type(page, PASSWORD_SELECTOR, credentials.password, {desc: 'password', delay: 1000, timeout: 10000, hideValue: true});
+		await _wait_for_selector_and_click(page, NEXT_BUTTON_SELECTOR, {desc: "next button", delay: 5000});
 	} catch (error) {
 		console.error(error);
 		return false;
@@ -136,14 +195,14 @@ const _order_trip = async (travelChoice, paymentProfileChoice, page) => {
 	const REQUEST_BUTTON_SELECTOR = "div[data-test=request-trip-button-container] > button";
 
 	// select ride option
-	await _wait_for_selector_and_click(page, TRAVEL_CHOICE_SELECTOR, "vehicle choice");
+	await _wait_for_selector_and_click(page, TRAVEL_CHOICE_SELECTOR, {desc: "vehicle choice"});
 
 	// select payment profile
-	await _wait_for_selector_and_click(page, PAYMENT_PROFILE_MENU_SELECTOR, "profile menu");
-	await _wait_for_selector_and_click(page, PAYMENT_PROFILE_CHOICE_SELECTOR, "profile choice");
+	await _wait_for_selector_and_click(page, PAYMENT_PROFILE_MENU_SELECTOR, {desc: "profile menu"});
+	await _wait_for_selector_and_click(page, PAYMENT_PROFILE_CHOICE_SELECTOR, {desc: "profile choice"});
 
 	// submit order
-	await _wait_for_selector_and_click(page, REQUEST_BUTTON_SELECTOR, "request button");
+	await _wait_for_selector_and_click(page, REQUEST_BUTTON_SELECTOR, {desc: "request button"});
 
 	// handle uber pool selection
 	console.log("checking for pool");
