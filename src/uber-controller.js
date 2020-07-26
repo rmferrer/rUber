@@ -266,8 +266,8 @@ const _search_payment_profiles = async (page) => {
 
 const _execute_in_page = async (fnc, cookies, launchArgs = {}) => {
 	console.log('launching browser');
-	const overridenLaunchArgs = Object.assign({}, defaultLaunchArgs, launchArgs);
-	const browser = await puppeteer.launch(overridenLaunchArgs);
+	const overriddenLaunchArgs = Object.assign({}, defaultLaunchArgs, launchArgs);
+	const browser = await puppeteer.launch(overriddenLaunchArgs);
 	const page = await browser.newPage();
 	await page.setCookie(...JSON.parse(cookies));
 	
