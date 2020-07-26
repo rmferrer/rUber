@@ -13,12 +13,6 @@ const _child_choice_selector = (parentSelector, choiceIdx) => {
 	return parentSelector +":nth-child(" + choiceIdx + ")";
 }
 
-const _click_and_wait_idle = (page, selector) => Promise.all([
-	  // page.evaluate((selector) => document.querySelector(selector).click(), selector),
-	  page.click(selector),
-	  page.waitForNavigation({ waitUntil: 'networkidle0' }),
-]);
-
 const _wait_for_selector_and_click = async (page,
 											selector,
 											{
@@ -159,14 +153,13 @@ const _login = async (page, credentials) => {
 }
 
 const _enter_address = async (address, page) => {
-	await page.focus('input');
-	await page.keyboard.type(address);
-	await page.waitFor(2000);
+	await _wait_for_selector_and_type(page, 'input', address, {desc: 'address input'});
 }
 
 const _click_address_option = async (option, page) => {
 	const choiceSelector = _child_choice_selector("div[data-test=list-container] > div", option);
-	await _click_and_wait_idle(page, choiceSelector);
+	await _wait_for_selector_and_click(page, choiceSelector, {desc: 'address choice'});
+	await page.waitForNavigation({ waitUntil: 'networkidle0' });
 }
 
 const _enter_and_click_address = async (address, page) => {
