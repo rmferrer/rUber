@@ -8,7 +8,7 @@ const _loginHandler = async (sessionKey, redis) => {
   return ["Enter TOTP for auth (empty if you don't have 2FA):"];
 }
 
-const _totpHandler = async (credentials, sessionKey, redis) => {
+const _totpHandler = async (credentials, sessionKey, redis, launchArgs) => {
   const cookies = await uberController.login_with_totp(credentials);
   
   if (cookies) {
@@ -243,6 +243,10 @@ const _saveAddressOptionHandler = async (input, sessionKey, redis) => {
 }
 
 const _inputRouter = async (input, sessionKey, redis) => {
+  const launchArgs = {
+    headless: process.env.HEADLESS,
+  }
+
   /* Handle logged out special commands first */
   if (input === "radio-check") {
     return ["Radio check! One two. Check check. One two. Check!"];
@@ -253,7 +257,7 @@ const _inputRouter = async (input, sessionKey, redis) => {
 
   if(!sessionCookies) {
     if (sessionStatus === models.statusCodes.loggedOut) {
-      return await _loginHandler(sessionKey, redis);  
+      return await _loginHandler(sessionKey, redis, launchArgs);
     }
     if (sessionStatus === models.statusCodes.totp) {
       const credentials = {
@@ -262,25 +266,24 @@ const _inputRouter = async (input, sessionKey, redis) => {
         password: process.env.UBER_PASSWORD,
         totp: input
       }
-      return await _totpHandler(credentials, sessionKey, redis);      
+      return await _totpHandler(credentials, sessionKey, redis, launchArgs);
     }
   }
 
   /* Handle logged in special commands first */
   if (input === "menu") {
-    return await _mainMenuSpecialCommandHandler(sessionKey, redis);
+    return await _mainMenuSpecialCommandHandler(sessionKey, redis, launchArgs);
   }
   /* Handle special commands first */
   if (input === "u") {
-    return await _newRideHandler(sessionKey, redis);
+    return await _newRideHandler(sessionKey, redis, launchArgs);
   } 
   if (input === "logout") {
-    return await _logoutHandler(sessionKey, redis);
+    return await _logoutHandler(sessionKey, redis, launchArgs);
   }
   if (input === "nuke") {
-    return await _nukeHandler(sessionKey, redis);
+    return await _nukeHandler(sessionKey, redis, launchArgs);
   }
-
 
   switch(sessionStatus) {
     case models.statusCodes.loggedOut: 
@@ -288,29 +291,29 @@ const _inputRouter = async (input, sessionKey, redis) => {
     case models.statusCodes.totp: 
       throw new Error("Cookies nonempty and status code is totp");
     case models.statusCodes.mainMenu:
-      return await _mainMenuHandler(input, sessionKey, redis);
+      return await _mainMenuHandler(input, sessionKey, redis, launchArgs);
     case models.statusCodes.settings:
-      return await _settingsHandler(input, sessionKey, redis);
+      return await _settingsHandler(input, sessionKey, redis, launchArgs);
     case models.statusCodes.saveName:
-      return await _saveNameHandler(input, sessionKey, redis);
+      return await _saveNameHandler(input, sessionKey, redis, launchArgs);
     case models.statusCodes.saveAddress:
-      return await _saveAddressHandler(input, sessionKey, redis, sessionCookies);
+      return await _saveAddressHandler(input, sessionKey, redis, sessionCookies, launchArgs);
     case models.statusCodes.saveAddressOption:
-      return await _saveAddressOptionHandler(input, sessionKey, redis);
+      return await _saveAddressOptionHandler(input, sessionKey, redis, launchArgs);
     case models.statusCodes.inputSource:
-      return await _inputSourceHandler(input, sessionKey, redis, sessionCookies);
+      return await _inputSourceHandler(input, sessionKey, redis, sessionCookies, launchArgs);
     case models.statusCodes.chooseSource:
-      return await _chooseSourceHandler(input, sessionKey, redis);
+      return await _chooseSourceHandler(input, sessionKey, redis, launchArgs);
     case models.statusCodes.inputDest:
-      return await _inputDestHandler(input, sessionKey, redis, sessionCookies);
+      return await _inputDestHandler(input, sessionKey, redis, sessionCookies, launchArgs);
     case models.statusCodes.chooseDest:
-      return await _chooseDestHandler(input, sessionKey, redis, sessionCookies);
+      return await _chooseDestHandler(input, sessionKey, redis, sessionCookies, launchArgs);
     case models.statusCodes.chooseTravelOption:
-      return await _chooseTravelOptionHandler(input, sessionKey, redis, sessionCookies);
+      return await _chooseTravelOptionHandler(input, sessionKey, redis, sessionCookies, launchArgs);
     case models.statusCodes.paymentMethodChoice:
-      return await _choosePaymentProfileHandler(input, sessionKey, redis, sessionCookies);
+      return await _choosePaymentProfileHandler(input, sessionKey, redis, sessionCookies, launchArgs);
     case models.statusCodes.rideInProgress:
-      return await _rideInProgressOptionHandler(input, sessionKey, redis, sessionCookies);
+      return await _rideInProgressOptionHandler(input, sessionKey, redis, sessionCookies, launchArgs);
     default:
       return ["don't have a handler for status : " + sessionStatus]; 
   }

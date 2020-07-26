@@ -307,7 +307,7 @@ const _execute_in_page_past_auth = async (fnc, cookies, launchArgs = {}) => {
 	return result;
 }
 
-const login_with_totp = async (credentials) => {
+const login_with_totp = async (credentials, launchArgs) => {
 	return await _execute_in_page(async (page) => {
 		const uri = uri_utils.base_uri(await page.url());
 		if (uri === "https://auth.uber.com") {
@@ -322,32 +322,32 @@ const login_with_totp = async (credentials) => {
 			console.error("Unrecognized login URI: " + uri);
 			return null;
 		}
-	}, '[]');
+	}, '[]', launchArgs);
 }
 
-const lookup_address = async (queryAddress, cookies) => {
+const lookup_address = async (queryAddress, cookies, launchArgs) => {
 	return await _execute_in_page_past_auth(async (page) => {
 		return await _search_address(queryAddress, page);
-	}, cookies);
+	}, cookies, launchArgs);
 }
 
-const lookup_rates = async (src, dest, cookies) => {
+const lookup_rates = async (src, dest, cookies, launchArgs) => {
 	return await _execute_in_page_past_auth(async (page) => {
 		await _enter_and_click_address(src, page);
 		await _enter_and_click_address(dest, page);
 		return await _search_rates(page);
-	}, cookies);
+	}, cookies, launchArgs);
 }
 
-const book_trip = async (src, dest, travel_option, payment_profile, cookies) => {
+const book_trip = async (src, dest, travel_option, payment_profile, cookies, launchArgs) => {
 	return await _execute_in_page_past_auth(async (page) => {
 		await _enter_and_click_address(src, page);
 		await _enter_and_click_address(dest, page);
 		return await _order_trip(travel_option, payment_profile, page);
-	}, cookies);
+	}, cookies, launchArgs);
 }
 
-const cancel_trip = async (cookies) => {
+const cancel_trip = async (cookies, launchArgs) => {
 	return await _execute_in_page_past_auth(async (page) => {
 		try {
 			await page.waitForSelector("div[data-test=list-container] + div > div > button");
@@ -359,15 +359,15 @@ const cancel_trip = async (cookies) => {
 			return false;	
 		}
 		return true;
-	}, cookies);
+	}, cookies, launchArgs);
 }
 
-const lookup_payment_profiles = async (src, dest, cookies) => {
+const lookup_payment_profiles = async (src, dest, cookies, launchArgs) => {
 	return await _execute_in_page_past_auth(async (page) => {
 		await _enter_and_click_address(src, page);
 		await _enter_and_click_address(dest, page);
 		return await _search_payment_profiles(page);
-	}, cookies);
+	}, cookies, launchArgs);
 }
 
 /* External API */
