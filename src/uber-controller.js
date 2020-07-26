@@ -193,12 +193,12 @@ const _order_trip = async (travelChoice, paymentProfileChoice, page) => {
 
 	const DETAILS_CONTAINER = "div[data-test=bottom-section-container] > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1)";
 
-	// select ride option
-	await _wait_for_selector_and_click(page, TRAVEL_CHOICE_SELECTOR, {desc: "vehicle choice"});
-
 	// select payment profile
 	await _wait_for_selector_and_click(page, PAYMENT_PROFILE_MENU_SELECTOR, {desc: "profile menu", delay: 2000});
 	await _wait_for_selector_and_click(page, PAYMENT_PROFILE_CHOICE_SELECTOR, {desc: "profile choice"});
+
+	// select ride option
+	await _wait_for_selector_and_click(page, TRAVEL_CHOICE_SELECTOR, {desc: "vehicle choice"});
 
 	// submit order
 	await _wait_for_selector_and_click(page, REQUEST_BUTTON_SELECTOR, {desc: "request button"});
