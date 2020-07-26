@@ -169,15 +169,13 @@ const _enter_and_click_address = async (address, page) => {
 const _search_address = async (address, page) => {
 	await _enter_address(address, page);
 	
-	const results = await page.evaluate(() => {
+	return await page.evaluate(() => {
 		const results = Array.from(document.querySelectorAll("div[data-test=list-container] > div"));
 		return results.map(div => div.children[1].innerText)
 					  .filter(txt => !txt.match(/Allow location access/))
 					  .map((item,idx) => (idx+1) + ". " + item)
 
 	});
-
-	return results;
 }
 
 const _order_trip = async (travelChoice, paymentProfileChoice, page) => {
@@ -246,14 +244,13 @@ const _search_payment_profiles = async (page) => {
 	}
     await page.click(PAYMENT_OPTION_SELECTOR)
 
-	const results = await page.evaluate(() => {
+	return await page.evaluate(() => {
 		const RESULTS_SELECTOR = "div[data-test=list-container] > span > div"
 
 		const results = Array.from(document.querySelectorAll(RESULTS_SELECTOR));
 		results.splice(-1, 1);
 		return results.map((item,idx) => (idx+1) + ". " + item.innerText)
 	});
-	return results;
 }
 
 const _execute_in_page = async (fnc, cookies, launchArgs = {}) => {
