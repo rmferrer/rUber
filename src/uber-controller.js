@@ -111,7 +111,7 @@ const _login = async (page, credentials) => {
 	try {
 		await _wait_for_selector_and_select(page, COUNTRY_CODE_SELECTOR, credentials.countryCode, {desc: "countryCode"});
 		await _wait_for_selector_and_type(page, PHONE_NUMBER_SELECTOR, credentials.phoneNumber, {desc: "phoneNumber"});
-		await _wait_for_selector_and_click(page, NEXT_BUTTON_SELECTOR, {desc: "next button", delay: 5000});
+		await _wait_for_selector_and_click(page, NEXT_BUTTON_SELECTOR, {desc: "next_button", delay: 5000});
 		const hasCaptcha = await page.evaluate(() => !!document.getElementById("recaptcha-accessible-status"));
 		if (hasCaptcha) {
 			console.log("detected captcha on login... waiting 1min for user to sort it out...");
@@ -127,7 +127,7 @@ const _login = async (page, credentials) => {
 		console.log("[LOGIN] Entering TOTP.");
 		try {
 			await _wait_for_selector_and_type(page, TOTP_SELECTOR, credentials.totp, {desc: "totp"});
-			await _wait_for_selector_and_click(page, NEXT_BUTTON_SELECTOR, {desc: "next button"});
+			await _wait_for_selector_and_click(page, NEXT_BUTTON_SELECTOR, {desc: "next_button"});
 		} catch (error) {
 			console.error(error);
 			return false;
@@ -139,7 +139,7 @@ const _login = async (page, credentials) => {
 	console.log("[LOGIN] Entering password.");
 	try {
 		await _wait_for_selector_and_type(page, PASSWORD_SELECTOR, credentials.password, {desc: 'password', delay: 1000, timeout: 10000, hideValue: true});
-		await _wait_for_selector_and_click(page, NEXT_BUTTON_SELECTOR, {desc: "next button", delay: 5000});
+		await _wait_for_selector_and_click(page, NEXT_BUTTON_SELECTOR, {desc: "next_button", delay: 5000});
 	} catch (error) {
 		console.error(error);
 		return false;
@@ -149,12 +149,12 @@ const _login = async (page, credentials) => {
 }
 
 const _enter_address = async (address, page) => {
-	await _wait_for_selector_and_type(page, 'input', address, {desc: 'address input'});
+	await _wait_for_selector_and_type(page, 'input', address, {desc: 'address_input'});
 }
 
 const _click_address_option = async (option, page) => {
 	const choiceSelector = _child_choice_selector("div[data-test=list-container] > div", option);
-	await _wait_for_selector_and_click(page, choiceSelector, {desc: 'address choice'});
+	await _wait_for_selector_and_click(page, choiceSelector, {desc: 'address_choice'});
 }
 
 const _enter_and_click_address = async (address, page) => {
@@ -192,14 +192,14 @@ const _order_trip = async (travelChoice, paymentProfileChoice, page) => {
 	const SURGE_KEY_TEXT = "Fares are slightly higher due to increased demand.";
 
 	// select payment profile
-	await _wait_for_selector_and_click(page, PAYMENT_PROFILE_MENU_SELECTOR, {desc: "profile menu", delay: 2000});
-	await _wait_for_selector_and_click(page, PAYMENT_PROFILE_CHOICE_SELECTOR, {desc: "profile choice"});
+	await _wait_for_selector_and_click(page, PAYMENT_PROFILE_MENU_SELECTOR, {desc: "profile_menu", delay: 2000});
+	await _wait_for_selector_and_click(page, PAYMENT_PROFILE_CHOICE_SELECTOR, {desc: "profile_choice"});
 
 	// select ride option
-	await _wait_for_selector_and_click(page, TRAVEL_CHOICE_SELECTOR, {desc: "vehicle choice"});
+	await _wait_for_selector_and_click(page, TRAVEL_CHOICE_SELECTOR, {desc: "vehicle_choice"});
 
 	// submit order
-	await _wait_for_selector_and_click(page, REQUEST_BUTTON_SELECTOR, {desc: "request button", delay: 1000});
+	await _wait_for_selector_and_click(page, REQUEST_BUTTON_SELECTOR, {desc: "request_button", delay: 1000});
 
 	// handle uber pool selection
 	console.log("checking for pool");
@@ -210,7 +210,7 @@ const _order_trip = async (travelChoice, paymentProfileChoice, page) => {
 	console.log("isPool = " + isPool);
 	if (isPool) {
 		console.log("uber pool selection detected. asking for only 1 seat...")
-		await _wait_for_selector_and_click(page, POOL_BUTTON_SELECTOR);
+		await _wait_for_selector_and_click(page, POOL_BUTTON_SELECTOR, {desc: "pool_button"});
 	}
 
 	// handle surge pricing
@@ -222,7 +222,6 @@ const _order_trip = async (travelChoice, paymentProfileChoice, page) => {
 	console.log("isSurge = " + isSurge);
 	if (isSurge) {
 		console.log("surge pricing detected. agreeing to higher fares.");
-		await _wait_for_selector_and_click(page, SURGE_BUTTON_SELECTOR);
 	}
 
 	// wait for driver to be assigned
