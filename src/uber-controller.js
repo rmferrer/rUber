@@ -96,7 +96,7 @@ const _login = async (page, credentials) => {
 		return false;
 	}
 
-	return await page.url() == "https://m.uber.com/looking";
+	return await page.url() === "https://m.uber.com/looking";
 }
 
 const _enter_address = async (address, page) => {
@@ -251,12 +251,12 @@ const _execute_in_page_past_auth = async (fnc, cookies, launchArgs = {}) => {
 const login_with_totp = async (credentials) => {
 	return await _execute_in_page(async (page) => {
 		const uri = uri_utils.base_uri(await page.url());
-		if (uri == "https://auth.uber.com") {
+		if (uri === "https://auth.uber.com") {
 			console.error("[AUTH] Not logged in. Logging in.")
 			const loggedIn = await _login(page, credentials);
 			console.log("[AUTH] Logged in succeeded: " + loggedIn)
 			return loggedIn ? JSON.stringify(await page.cookies()) : null;
-		} else if (uri == "https://m.uber.com") {
+		} else if (uri === "https://m.uber.com") {
 			console.log("[AUTH] Logged in.");
 			return JSON.stringify(await page.cookies());
 		} else {
