@@ -73,7 +73,8 @@ RUN npm install --only=prod
 
 COPY . /app
 ADD ./heroku/.profile.d /app/.profile.d
-RUN chmod a+x /app/.profile.d/heroku-exec.sh
+COPY ./heroku/.profile.d/heroku-exec.sh /etc/profile.d/heroku-exec.sh
+RUN chmod a+x /etc/profile.d/heroku-exec.sh
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
 # Start server on port 3000
@@ -81,4 +82,4 @@ EXPOSE 3000
 ENV PORT=3000
 
 # Enable heroku exec, start script on Xvfb, and start server
-CMD bash /app/.profile.d/heroku-exec.sh && bash scripts/display.sh && npm run start
+CMD bash /etc/profile.d/heroku-exec.sh && bash scripts/display.sh && npm run start
