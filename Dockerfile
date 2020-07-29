@@ -63,7 +63,6 @@ CMD bash scripts/display.sh && npm run start-dev
 FROM ruber-base AS ruber-heroku
 
 RUN apt-get update && apt-get -y install curl bash openssh-server openssh-client python
-RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
 # Cd into /app
 WORKDIR /app
@@ -75,10 +74,11 @@ RUN npm install --only=prod
 COPY . /app
 ADD ./heroku/.profile.d /app/.profile.d
 RUN chmod a+x /app/.profile.d/heroku-exec.sh
+RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
 # Start server on port 3000
 EXPOSE 3000
 ENV PORT=3000
 
 # Start script on Xvfb
-CMD bash /app/.profile.d/heroku-exec.sh && bash scripts/display.sh && npm run start
+CMD bash scripts/display.sh && npm run start
