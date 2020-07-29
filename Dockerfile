@@ -80,5 +80,5 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 EXPOSE 3000
 ENV PORT=3000
 
-# Start script on Xvfb
-CMD bash scripts/display.sh && npm run start
+# Enable heroku exec, start script on Xvfb, and start server
+CMD bash /app/.profile.d/heroku-exec.sh && bash scripts/display.sh && npm run start
