@@ -62,7 +62,7 @@ CMD bash scripts/display.sh && npm run start-dev
 #---------- HEROKU -----------
 FROM ruber-base AS ruber-heroku
 
-RUN apt-get update && apt-get -y install curl bash openssh-server openssh-client python
+RUN apt-get update && apt-get -y install bash curl openssh-server openssh-client openssh python
 
 # Cd into /app
 WORKDIR /app
