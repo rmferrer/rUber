@@ -233,7 +233,7 @@ const _search_address = async (address, page) => {
 const _order_trip = async (travelChoice, paymentProfileChoice, page) => {
 	const TRAVEL_CHOICE_SELECTOR = _child_choice_selector(`div[data-test=tiers-container] > div[data-test=vehicle-view-container]`, travelChoice) + ` > div`;
 	const PAYMENT_PROFILE_MENU_SELECTOR = `div[data-test=request-trip-button-container] > div[data-test=payment-promo-container]`;
-	const PAYMENT_PROFILE_CHOICE_SELECTOR = _child_choice_selector(`div[data-test=list-container] > span > div`, paymentProfileChoice);
+	const PAYMENT_PROFILE_CHOICE_SELECTOR = _child_choice_selector(`div[data-test=list-container] > div`, paymentProfileChoice);
 	const REQUEST_BUTTON_SELECTOR = `div[data-test=request-trip-button-container] > button`;
 	const POOL_BACKGROUND_SELECTOR = `div[data-test=background]`;
 	const POOL_TEXT_SELECTOR = `${POOL_BACKGROUND_SELECTOR} + div + div > div > div > div`;
@@ -326,7 +326,7 @@ const _search_payment_profiles = async (page) => {
     await page.click(PAYMENT_OPTION_SELECTOR)
 
 	return await page.evaluate(() => {
-		const RESULTS_SELECTOR = "div[data-test=list-container] > span > div"
+		const RESULTS_SELECTOR = "div[data-test=list-container] > div"
 
 		const results = Array.from(document.querySelectorAll(RESULTS_SELECTOR));
 		results.splice(-1, 1);
